@@ -62,8 +62,7 @@ Segment_Equalchecker:
 
 	CJNE A,R6,Non_Equal
 
-	; Here is bug.
-
+	; Here is """"""""BIG"""""""" bug.
 	MOV A,#1 ;TRUE
 	Checkcomplete:
 		JNZ Segment_Numberdisplayer_0
@@ -77,7 +76,6 @@ Segment_Equalchecker:
 		JNZ Segment_Numberdisplayer_7
 		JNZ Segment_Numberdisplayer_8
 		JNZ Segment_Numberdisplayer_9
-
 
 
 	Non_Equal:
@@ -150,30 +148,44 @@ Segment_Update:
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_1:
 			CLR SEGMENT0_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
+			LCALL Segment_Privious_Clear
 			SETB SEGMENT1_ENABLE
 			MOV R1,#1 ; the flag open, and it means the SEGMENT is enabled.
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_2:
 			CLR SEGMENT1_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
+			LCALL Segment_Privious_Clear
 			SETB SEGMENT2_ENABLE
 			MOV R2,#1 ; the flag open, and it means the SEGMENT is enabled.
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_3:
 			CLR SEGMENT2_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
+			LCALL Segment_Privious_Clear
 			SETB SEGMENT3_ENABLE
 			MOV R3,#1 ; the flag open, and it means the SEGMENT is enabled.
 			LCALL Segment_Numberdisplayer 
+			
 			CLR SEGMENT3_ENABLE ; It must be clear itself.
-	RET ;pop the stack, and you can back the main code.
+			LCALL Segment_Privious_Clear
+		RET ;pop the stack, and you can back the main code.
 
-		
+	Segment_Privious_Clear:
+		CLR SEGMENT_A
+		CLR SEGMENT_B
+		CLR SEGMENT_C
+		CLR SEGMENT_D
+		CLR SEGMENT_E
+		CLR SEGMENT_F
+		CLR SEGMENT_G
+		RET
 		
 	; for number display and replace the position of Array.
 	Segment_Numberdisplayer:
 
+
 		;here is bug
-		MOV R6,
 		JMP Segment_Equalchecker
+
 
 
 		Segment_Numberdisplayer_0:
