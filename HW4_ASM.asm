@@ -99,22 +99,39 @@ Segment_Loop:
 ; for the number of every segment.
 Segment_Adder:
 	JB SWITCH, Segment_Adder ;debounce
+
 	MOV A,R0
 	INC A
-	CJNE A,#0AH,Segment_Non_Carry ; here is bug!!!
+	MOV R0,A
+
+	CJNE R0,#0AH,Segment_Non_Carry ; because this is a add 1 circuit, we only need to care the LSB.
 	
 
 	;uncomplete
 	Segment_Carry:
-		Segment_Carry_R0toR1:
-			MOV A,R0
-		Segment_Carry_R1toR2:
-
+		CJNE R2,#0AH,Segment_Carry_R1toR2
 		Segment_Carry_R2toR3:
+			MOV A,R3
+			INC A
+			MOV R3,A
+			CLR R2
 
-		Segment_Carry_Overflow:
+		Segment_Carry_R1toR2:
+			CJNE R1,#0AH,Segment_Carry_R0toR1
+			MOV A,R2
+			INC A
+			MOV R2,A
+			CLR R1
 
+		Segment_Carry_R0toR1:
+			CJNE R0,#0AH,Segment_Carry_Complete
+			MOV A,R1
+			INC A
+			MOV R1,A
+			CLR R0
 
+		Segment_Carry_Complete:
+			JMP Segment_Loop 
 
 	Segment_Non_Carry:
 	MOV R4,A
