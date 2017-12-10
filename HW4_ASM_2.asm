@@ -43,14 +43,14 @@ AJMP Setup
 
 Setup:
 	;Number Initial
-	MOV R0,0
-	MOV R1,0
-	MOV R2,0
-	MOV R3,0
-	MOV R4,1 ;for first equal checker & update initial state.
-	MOV R5,0
-	MOV R6,0
-	MOV R7,0
+	MOV R0,#0
+	MOV R1,#0
+	MOV R2,#0
+	MOV R3,#0
+	MOV R4,#1 ;for first equal checker & update initial state.
+	MOV R5,#0
+	MOV R6,#0
+	MOV R7,#0
 	LCALL Segment_Update
 	JMP Segment_Loop
 
@@ -86,21 +86,21 @@ Segment_Adder:
 			MOV A,R3
 			INC A
 			MOV R3,A
-			CLR R2
+			MOV R2,#0
 
 		Segment_Carry_R1toR2:
 			CJNE R1,#0AH,Segment_Carry_R0toR1
 			MOV A,R2
 			INC A
 			MOV R2,A
-			CLR R1
+			MOV R1,#0
 
 		Segment_Carry_R0toR1:
 			CJNE R0,#0AH,Segment_Carry_Complete
 			MOV A,R1
 			INC A
 			MOV R1,A
-			CLR R0
+			MOV R0,#0
 
 		Segment_Carry_Complete:
 			CLR A 
@@ -121,25 +121,25 @@ Segment_Update:
 	Segment_Chooser:
 		Segment_Chooser_0:
 			SETB SEGMENT0_ENABLE
-			MOV R6,R0 ; for displayer's check.
+			MOV 06H,R0 ; for displayer's check.
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_1:
 			CLR SEGMENT0_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
 			LCALL Segment_Privious_Clear
 			SETB SEGMENT1_ENABLE
-			MOV R6,R1 ; for displayer's check.
+			MOV 06H,R1 ; for displayer's check.
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_2:
 			CLR SEGMENT1_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
 			LCALL Segment_Privious_Clear
 			SETB SEGMENT2_ENABLE
-			MOV R6,R2 ; for displayer's check.
+			MOV 06H,R2 ; for displayer's check.
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_3:
 			CLR SEGMENT2_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
 			LCALL Segment_Privious_Clear
 			SETB SEGMENT3_ENABLE
-			MOV R6,R3 ; for displayer's check.
+			MOV 06H,R3 ; for displayer's check.
 			LCALL Segment_Numberdisplayer 
 			CLR SEGMENT3_ENABLE ; It must be clear itself.
 			LCALL Segment_Privious_Clear
@@ -167,7 +167,7 @@ Segment_Update:
 			SETB SEGMENT_D
 			SETB SEGMENT_E
 			SETB SEGMENT_F
-			CLR R6
+			MOV R6,#0
 			RET  ;when display complete, you need to back to choose next one which need to display. 
 		
 		Segment_Numberdisplayer_1:
@@ -175,7 +175,7 @@ Segment_Update:
 			CJNE R6,#1,Segment_Numberdisplayer_2
 			SETB SEGMENT_B
 			SETB SEGMENT_C
-			CLR R6
+			MOV R6,#0
 			RET 
 
 		Segment_Numberdisplayer_2:
@@ -186,7 +186,7 @@ Segment_Update:
 			SETB SEGMENT_D
 			SETB SEGMENT_E
 			SETB SEGMENT_G
-			CLR R6
+			MOV R6,#0
 			RET 
 
 		Segment_Numberdisplayer_3:
@@ -197,7 +197,7 @@ Segment_Update:
 			SETB SEGMENT_C
 			SETB SEGMENT_D
 			SETB SEGMENT_G
-			CLR R6
+			MOV R6,#0
 			RET 
 
 		Segment_Numberdisplayer_4:
@@ -207,7 +207,7 @@ Segment_Update:
 			SETB SEGMENT_C
 			SETB SEGMENT_F
 			SETB SEGMENT_G
-			CLR R6
+			MOV R6,#0
 			RET 
 
 		Segment_Numberdisplayer_5:
@@ -218,7 +218,7 @@ Segment_Update:
 			SETB SEGMENT_D
 			SETB SEGMENT_F
 			SETB SEGMENT_G
-			CLR R6
+			MOV R6,#0
 			RET 
 
 		Segment_Numberdisplayer_6:
@@ -229,7 +229,7 @@ Segment_Update:
 			SETB SEGMENT_E
 			SETB SEGMENT_F
 			SETB SEGMENT_G
-			CLR R6
+			MOV R6,#0
 			RET 
 
 		Segment_Numberdisplayer_7:
@@ -238,7 +238,7 @@ Segment_Update:
 			SETB SEGMENT_A
 			SETB SEGMENT_B
 			SETB SEGMENT_C
-			CLR R6
+			MOV R6,#0
 			RET 
 
 		Segment_Numberdisplayer_8:
@@ -251,7 +251,7 @@ Segment_Update:
 			SETB SEGMENT_E
 			SETB SEGMENT_F
 			SETB SEGMENT_G
-			CLR R6
+			MOV R6,#0
 			RET 
 
 		Segment_Numberdisplayer_9:
@@ -263,7 +263,7 @@ Segment_Update:
 			SETB SEGMENT_E
 			SETB SEGMENT_F
 			SETB SEGMENT_G
-			CLR R6
+			MOV R6,#0
 			RET 
 
-	END
+END
