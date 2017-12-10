@@ -1,0 +1,1 @@
+"HW4_ASM.asm" SET (SMALL) DEBUG PRINT(.\Listings\HW4_ASM.lst) OBJECT(.\Objects\HW4_ASM.obj) EP

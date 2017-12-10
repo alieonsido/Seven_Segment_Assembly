@@ -1,0 +1,349 @@
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:18:50 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.2.7.0
+OBJECT MODULE PLACED IN .\Objects\HW4_ASM.obj
+ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE HW4_ASM.asm SET(SMALL) DEBUG PRINT(.\Listings\HW4_ASM.lst) OBJECT(.\Obj
+                      ects\HW4_ASM.obj) EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ; Spec 1: click SW13 and the segment_LED ++ with non-interrupt.
+                       2     ; Sepc 2: click SW13 and the segment_LED ++ with external interrupt.
+                       3     
+                       4     ; the program is non-interrupt.
+                       5     
+                       6     ; non-interrupt:
+                       7     
+                       8     ; ----------------defination
+                       9     
+  00A0                10     SWITCH EQU P2.0
+                      11     
+  0090                12     SEGMENT0_ENABLE EQU P1.0 
+  0091                13     SEGMENT1_ENABLE EQU P1.1
+  0092                14     SEGMENT2_ENABLE EQU P1.2
+  0093                15     SEGMENT3_ENABLE EQU P1.3
+                      16     
+  00A0                17     SEGMENT_A EQU P2.0
+  00A1                18     SEGMENT_B EQU P2.1
+  00A2                19     SEGMENT_C EQU P2.2
+  00A3                20     SEGMENT_D EQU P2.3
+  00A4                21     SEGMENT_E EQU P2.4
+  00A5                22     SEGMENT_F EQU P2.5
+  00A6                23     SEGMENT_G EQU P2.6
+  00A7                24     SEGMENT_DOT EQU P2.7
+                      25     
+                      26     
+                      27     ; ----------------defination
+                      28     
+                      29     ; Notes:
+                      30             ; MOV P2,A let all of P2 be zero.
+                      31             ; R0 R1 R2 R3 is used to be set "value".
+                      32             ; R4 is FLAG for adder triggered
+                      33             ; R5 is used to save the carry.
+                      34             ; R6 is used to be displayer.
+                      35     
+                      36     
+                      37     ; Setup.
+0000                  38     ORG 0000H
+0000 E500             39     MOV A,00H 
+0002 F5A0             40     MOV P2,A ;P2 = ""All"" of Port 2 
+0004 F590             41     MOV P1,A
+0006 0108             42     AJMP Setup
+                      43     
+0008                  44     Setup:
+                      45             ;Number Initial
+0008 7800             46             MOV R0,#0
+000A 7900             47             MOV R1,#0
+000C 7A00             48             MOV R2,#0
+000E 7B00             49             MOV R3,#0
+0010 7C01             50             MOV R4,#1 ;for first equal checker & update initial state.
+0012 7D00             51             MOV R5,#0
+0014 7E00             52             MOV R6,#0
+0016 7F00             53             MOV R7,#0
+0018 120050           54             LCALL Segment_Update
+001B 8000             55             JMP Segment_Loop
+                      56     
+                      57     
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:18:50 PAGE     2
+
+                      58             
+                      59     
+                      60             
+                      61     ; for scan every segment loop, and it's main code.
+                      62     ; Segment_Chooser include displayer.
+001D                  63     Segment_Loop:
+001D 30A005           64             JNB SWITCH,Segment_Adder
+0020 120050           65             LCALL Segment_Update
+0023 80F8             66             JMP Segment_Loop
+                      67             
+                      68     
+                      69     
+                      70     
+                      71     ; for the number of every segment.
+0025                  72     Segment_Adder:
+0025 20A0FD           73             JB SWITCH, Segment_Adder ;debounce
+                      74     
+0028 E8               75             MOV A,R0
+0029 04               76             INC A
+002A F8               77             MOV R0,A
+                      78     
+002B B80A1D           79             CJNE R0,#0AH,Segment_Non_Carry ; because this is a add 1 circuit, we only need to c
+                             are the LSB.
+                      80             
+                      81     
+                      82             ;uncomplete
+002E                  83             Segment_Carry:
+002E BA0A05           84                     CJNE R2,#0AH,Segment_Carry_R1toR2
+0031                  85                     Segment_Carry_R2toR3:
+0031 EB               86                             MOV A,R3
+0032 04               87                             INC A
+0033 FB               88                             MOV R3,A
+0034 7A00             89                             MOV R2,#0
+                      90     
+0036                  91                     Segment_Carry_R1toR2:
+0036 B90A05           92                             CJNE R1,#0AH,Segment_Carry_R0toR1
+0039 EA               93                             MOV A,R2
+003A 04               94                             INC A
+003B FA               95                             MOV R2,A
+003C 7900             96                             MOV R1,#0
+                      97     
+003E                  98                     Segment_Carry_R0toR1:
+003E B80A05           99                             CJNE R0,#0AH,Segment_Carry_Complete
+0041 E9              100                             MOV A,R1
+0042 04              101                             INC A
+0043 F9              102                             MOV R1,A
+0044 7800            103                             MOV R0,#0
+                     104     
+0046                 105                     Segment_Carry_Complete:
+0046 E4              106                             CLR A 
+0047 7C01            107                             MOV R4,#1 ; flag
+0049 80D2            108                             JMP Segment_Loop 
+                     109     
+004B                 110             Segment_Non_Carry:
+                     111                     ;MOV R4,A
+004B E4              112                     CLR A
+004C 7C01            113                     MOV R4,#1 ; flag
+004E 80CD            114                     JMP Segment_Loop 
+                     115             ;Warning: you can't JMP to Segment_Numberdisplayer directly, or you won't ba able t
+                             o back Segment_Adder.
+                     116     
+                     117     
+0050                 118     Segment_Update:
+                     119     
+                     120             ; for choose the segment bit.
+0050                 121             Segment_Chooser:
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:18:50 PAGE     3
+
+0050                 122                     Segment_Chooser_0:
+0050 D290            123                             SETB SEGMENT0_ENABLE
+0052 8806            124                             MOV 06H,R0 ; for displayer's check.
+0054 120090          125                             LCALL Segment_Numberdisplayer
+0057                 126                     Segment_Chooser_1:
+0057 C290            127                             CLR SEGMENT0_ENABLE ;you need to clean the previous SEGMENT or you 
+                             will get the previous status.
+0059 120081          128                             LCALL Segment_Privious_Clear
+005C D291            129                             SETB SEGMENT1_ENABLE
+005E 8906            130                             MOV 06H,R1 ; for displayer's check.
+0060 120090          131                             LCALL Segment_Numberdisplayer
+0063                 132                     Segment_Chooser_2:
+0063 C291            133                             CLR SEGMENT1_ENABLE ;you need to clean the previous SEGMENT or you 
+                             will get the previous status.
+0065 120081          134                             LCALL Segment_Privious_Clear
+0068 D292            135                             SETB SEGMENT2_ENABLE
+006A 8A06            136                             MOV 06H,R2 ; for displayer's check.
+006C 120090          137                             LCALL Segment_Numberdisplayer
+006F                 138                     Segment_Chooser_3:
+006F C292            139                             CLR SEGMENT2_ENABLE ;you need to clean the previous SEGMENT or you 
+                             will get the previous status.
+0071 120081          140                             LCALL Segment_Privious_Clear
+0074 D293            141                             SETB SEGMENT3_ENABLE
+0076 8B06            142                             MOV 06H,R3 ; for displayer's check.
+0078 120090          143                             LCALL Segment_Numberdisplayer 
+007B C293            144                             CLR SEGMENT3_ENABLE ; It must be clear itself.
+007D 120081          145                             LCALL Segment_Privious_Clear
+0080 22              146                     RET ;pop the stack, and you can back the main code.
+                     147     
+0081                 148             Segment_Privious_Clear:
+0081 C2A0            149                     CLR SEGMENT_A
+0083 C2A1            150                     CLR SEGMENT_B
+0085 C2A2            151                     CLR SEGMENT_C
+0087 C2A3            152                     CLR SEGMENT_D
+0089 C2A4            153                     CLR SEGMENT_E
+008B C2A5            154                     CLR SEGMENT_F
+008D C2A6            155                     CLR SEGMENT_G
+008F 22              156                     RET
+                     157                     
+                     158             ; for number display and replace the position of Array.
+0090                 159             Segment_Numberdisplayer:
+                     160     
+0090                 161                     Segment_Numberdisplayer_0:
+                     162                     ;segment 0
+0090 BE000F          163                             CJNE R6,#0,Segment_Numberdisplayer_1
+0093 D2A0            164                             SETB SEGMENT_A
+0095 D2A1            165                             SETB SEGMENT_B
+0097 D2A2            166                             SETB SEGMENT_C
+0099 D2A3            167                             SETB SEGMENT_D
+009B D2A4            168                             SETB SEGMENT_E
+009D D2A5            169                             SETB SEGMENT_F
+009F 7E00            170                             MOV R6,#0
+00A1 22              171                             RET  ;when display complete, you need to back to choose next one wh
+                             ich need to display. 
+                     172                     
+00A2                 173                     Segment_Numberdisplayer_1:
+                     174                     ;segment 1
+00A2 BE0107          175                             CJNE R6,#1,Segment_Numberdisplayer_2
+00A5 D2A1            176                             SETB SEGMENT_B
+00A7 D2A2            177                             SETB SEGMENT_C
+00A9 7E00            178                             MOV R6,#0
+00AB 22              179                             RET 
+                     180     
+00AC                 181                     Segment_Numberdisplayer_2:
+                     182                     ;segment 2
+00AC BE020D          183                             CJNE R6,#2,Segment_Numberdisplayer_3
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:18:50 PAGE     4
+
+00AF D2A0            184                             SETB SEGMENT_A
+00B1 D2A1            185                             SETB SEGMENT_B
+00B3 D2A3            186                             SETB SEGMENT_D
+00B5 D2A4            187                             SETB SEGMENT_E
+00B7 D2A6            188                             SETB SEGMENT_G
+00B9 7E00            189                             MOV R6,#0
+00BB 22              190                             RET 
+                     191     
+00BC                 192                     Segment_Numberdisplayer_3:
+                     193                     ;segment 3
+00BC BE030D          194                             CJNE R6,#3,Segment_Numberdisplayer_4
+00BF D2A0            195                             SETB SEGMENT_A
+00C1 D2A1            196                             SETB SEGMENT_B
+00C3 D2A2            197                             SETB SEGMENT_C
+00C5 D2A3            198                             SETB SEGMENT_D
+00C7 D2A6            199                             SETB SEGMENT_G
+00C9 7E00            200                             MOV R6,#0
+00CB 22              201                             RET 
+                     202     
+00CC                 203                     Segment_Numberdisplayer_4:
+                     204                     ;segment 4
+00CC BE040B          205                             CJNE R6,#4,Segment_Numberdisplayer_5
+00CF D2A1            206                             SETB SEGMENT_B
+00D1 D2A2            207                             SETB SEGMENT_C
+00D3 D2A5            208                             SETB SEGMENT_F
+00D5 D2A6            209                             SETB SEGMENT_G
+00D7 7E00            210                             MOV R6,#0
+00D9 22              211                             RET 
+                     212     
+00DA                 213                     Segment_Numberdisplayer_5:
+                     214                     ;segment 5
+00DA BE050D          215                             CJNE R6,#5,Segment_Numberdisplayer_6
+00DD D2A0            216                             SETB SEGMENT_A
+00DF D2A2            217                             SETB SEGMENT_C
+00E1 D2A3            218                             SETB SEGMENT_D
+00E3 D2A5            219                             SETB SEGMENT_F
+00E5 D2A6            220                             SETB SEGMENT_G
+00E7 7E00            221                             MOV R6,#0
+00E9 22              222                             RET 
+                     223     
+00EA                 224                     Segment_Numberdisplayer_6:
+                     225                     ;segment 6
+00EA BE060D          226                             CJNE R6,#6,Segment_Numberdisplayer_7
+00ED D2A2            227                             SETB SEGMENT_C
+00EF D2A3            228                             SETB SEGMENT_D
+00F1 D2A4            229                             SETB SEGMENT_E
+00F3 D2A5            230                             SETB SEGMENT_F
+00F5 D2A6            231                             SETB SEGMENT_G
+00F7 7E00            232                             MOV R6,#0
+00F9 22              233                             RET 
+                     234     
+00FA                 235                     Segment_Numberdisplayer_7:
+                     236                     ;segment 7
+00FA BE0709          237                             CJNE R6,#7,Segment_Numberdisplayer_8
+00FD D2A0            238                             SETB SEGMENT_A
+00FF D2A1            239                             SETB SEGMENT_B
+0101 D2A2            240                             SETB SEGMENT_C
+0103 7E00            241                             MOV R6,#0
+0105 22              242                             RET 
+                     243     
+0106                 244                     Segment_Numberdisplayer_8:
+                     245                     ;segment 8
+0106 BE0811          246                             CJNE R6,#8,Segment_Numberdisplayer_9
+0109 D2A0            247                             SETB SEGMENT_A
+010B D2A1            248                             SETB SEGMENT_B
+010D D2A2            249                             SETB SEGMENT_C
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:18:50 PAGE     5
+
+010F D2A3            250                             SETB SEGMENT_D
+0111 D2A4            251                             SETB SEGMENT_E
+0113 D2A5            252                             SETB SEGMENT_F
+0115 D2A6            253                             SETB SEGMENT_G
+0117 7E00            254                             MOV R6,#0
+0119 22              255                             RET 
+                     256     
+011A                 257                     Segment_Numberdisplayer_9:
+                     258                     ;segment 9
+011A D2A0            259                             SETB SEGMENT_A
+011C D2A1            260                             SETB SEGMENT_B
+011E D2A2            261                             SETB SEGMENT_C
+0120 D2A3            262                             SETB SEGMENT_D
+0122 D2A4            263                             SETB SEGMENT_E
+0124 D2A5            264                             SETB SEGMENT_F
+0126 D2A6            265                             SETB SEGMENT_G
+0128 7E00            266                             MOV R6,#0
+012A 22              267                             RET 
+                     268     
+                     269     END
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:18:50 PAGE     6
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E                    T Y P E  V A L U E   ATTRIBUTES
+
+P1. . . . . . . . . . . .  D ADDR   0090H   A   
+P2. . . . . . . . . . . .  D ADDR   00A0H   A   
+SEGMENT0_ENABLE . . . . .  B ADDR   0090H.0 A   
+SEGMENT1_ENABLE . . . . .  B ADDR   0090H.1 A   
+SEGMENT2_ENABLE . . . . .  B ADDR   0090H.2 A   
+SEGMENT3_ENABLE . . . . .  B ADDR   0090H.3 A   
+SEGMENT_A . . . . . . . .  B ADDR   00A0H.0 A   
+SEGMENT_ADDER . . . . . .  C ADDR   0025H   A   
+SEGMENT_B . . . . . . . .  B ADDR   00A0H.1 A   
+SEGMENT_C . . . . . . . .  B ADDR   00A0H.2 A   
+SEGMENT_CARRY . . . . . .  C ADDR   002EH   A   
+SEGMENT_CARRY_COMPLETE. .  C ADDR   0046H   A   
+SEGMENT_CARRY_R0TOR1. . .  C ADDR   003EH   A   
+SEGMENT_CARRY_R1TOR2. . .  C ADDR   0036H   A   
+SEGMENT_CARRY_R2TOR3. . .  C ADDR   0031H   A   
+SEGMENT_CHOOSER . . . . .  C ADDR   0050H   A   
+SEGMENT_CHOOSER_0 . . . .  C ADDR   0050H   A   
+SEGMENT_CHOOSER_1 . . . .  C ADDR   0057H   A   
+SEGMENT_CHOOSER_2 . . . .  C ADDR   0063H   A   
+SEGMENT_CHOOSER_3 . . . .  C ADDR   006FH   A   
+SEGMENT_D . . . . . . . .  B ADDR   00A0H.3 A   
+SEGMENT_DOT . . . . . . .  B ADDR   00A0H.7 A   
+SEGMENT_E . . . . . . . .  B ADDR   00A0H.4 A   
+SEGMENT_F . . . . . . . .  B ADDR   00A0H.5 A   
+SEGMENT_G . . . . . . . .  B ADDR   00A0H.6 A   
+SEGMENT_LOOP. . . . . . .  C ADDR   001DH   A   
+SEGMENT_NON_CARRY . . . .  C ADDR   004BH   A   
+SEGMENT_NUMBERDISPLAYER .  C ADDR   0090H   A   
+SEGMENT_NUMBERDISPLAYER_0  C ADDR   0090H   A   
+SEGMENT_NUMBERDISPLAYER_1  C ADDR   00A2H   A   
+SEGMENT_NUMBERDISPLAYER_2  C ADDR   00ACH   A   
+SEGMENT_NUMBERDISPLAYER_3  C ADDR   00BCH   A   
+SEGMENT_NUMBERDISPLAYER_4  C ADDR   00CCH   A   
+SEGMENT_NUMBERDISPLAYER_5  C ADDR   00DAH   A   
+SEGMENT_NUMBERDISPLAYER_6  C ADDR   00EAH   A   
+SEGMENT_NUMBERDISPLAYER_7  C ADDR   00FAH   A   
+SEGMENT_NUMBERDISPLAYER_8  C ADDR   0106H   A   
+SEGMENT_NUMBERDISPLAYER_9  C ADDR   011AH   A   
+SEGMENT_PRIVIOUS_CLEAR. .  C ADDR   0081H   A   
+SEGMENT_UPDATE. . . . . .  C ADDR   0050H   A   
+SETUP . . . . . . . . . .  C ADDR   0008H   A   
+SWITCH. . . . . . . . . .  B ADDR   00A0H.0 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
