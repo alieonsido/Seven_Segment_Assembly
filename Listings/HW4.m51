@@ -1,16 +1,15 @@
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    12/10/2017  21:19:04  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    12/10/2017  21:38:06  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
-C:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\STARTUP.obj, .\Objects\HW4_ASM.obj TO .\Objects\HW4 PRINT (.\Listings\HW4.m51)
+C:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\HW4_ASM.obj TO .\Objects\HW4 PRINT (.\Listings\HW4.m51)
 
 
 INPUT MODULES INCLUDED:
-  .\Objects\STARTUP.obj (?C_STARTUP)
   .\Objects\HW4_ASM.obj (HW4_ASM)
 
 
-LINK MAP OF MODULE:  .\Objects\HW4 (?C_STARTUP)
+LINK MAP OF MODULE:  .\Objects\HW4 (HW4_ASM)
 
 
             TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
@@ -18,62 +17,16 @@ LINK MAP OF MODULE:  .\Objects\HW4 (?C_STARTUP)
 
             * * * * * * *   D A T A   M E M O R Y   * * * * * * *
             REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
-            IDATA   0008H     0001H     UNIT         ?STACK
 
             * * * * * * *   C O D E   M E M O R Y   * * * * * * *
-            CODE    0000H     0003H     ABSOLUTE     
-* OVERLAP * CODE    0000H     012BH     ABSOLUTE     
-                    012BH     06D5H                  *** GAP ***
-            CODE    0800H     000CH     UNIT         ?C_C51STARTUP
+            CODE    0000H     012BH     ABSOLUTE     
 
 
 
-UNRESOLVED EXTERNAL SYMBOLS:
-   ?C_START
-
-
-
-SYMBOL TABLE OF MODULE:  .\Objects\HW4 (?C_STARTUP)
+SYMBOL TABLE OF MODULE:  .\Objects\HW4 (HW4_ASM)
 
   VALUE           TYPE          NAME
   ----------------------------------
-
-  -------         MODULE        ?C_STARTUP
-  C:0800H         SEGMENT       ?C_C51STARTUP
-  I:0008H         SEGMENT       ?STACK
-  C:0000H         PUBLIC        ?C_STARTUP
-  D:00E0H         SYMBOL        ACC
-  D:00F0H         SYMBOL        B
-  D:0083H         SYMBOL        DPH
-  D:0082H         SYMBOL        DPL
-  N:0000H         SYMBOL        IBPSTACK
-  N:0100H         SYMBOL        IBPSTACKTOP
-  N:0080H         SYMBOL        IDATALEN
-  C:0803H         SYMBOL        IDATALOOP
-  N:0000H         SYMBOL        PBPSTACK
-  N:0100H         SYMBOL        PBPSTACKTOP
-  N:0000H         SYMBOL        PDATALEN
-  N:0000H         SYMBOL        PDATASTART
-  N:0000H         SYMBOL        PPAGE
-  N:0000H         SYMBOL        PPAGEENABLE
-  D:00A0H         SYMBOL        PPAGE_SFR
-  D:0081H         SYMBOL        SP
-  C:0800H         SYMBOL        STARTUP1
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  12/10/2017  21:19:04  PAGE 2
-
-
-  N:0000H         SYMBOL        XBPSTACK
-  N:0000H         SYMBOL        XBPSTACKTOP
-  N:0000H         SYMBOL        XDATALEN
-  N:0000H         SYMBOL        XDATASTART
-  C:0000H         LINE#         126
-  C:0800H         LINE#         133
-  C:0802H         LINE#         134
-  C:0803H         LINE#         135
-  C:0804H         LINE#         136
-  C:0806H         LINE#         185
-  C:0809H         LINE#         196
-  -------         ENDMOD        ?C_STARTUP
 
   -------         MODULE        HW4_ASM
   D:0090H         SYMBOL        P1
@@ -106,6 +59,9 @@ SYMBOL TABLE OF MODULE:  .\Objects\HW4 (?C_STARTUP)
   C:0090H         SYMBOL        SEGMENT_NUMBERDISPLAYER
   C:0090H         SYMBOL        SEGMENT_NUMBERDISPLAYER_0
   C:00A2H         SYMBOL        SEGMENT_NUMBERDISPLAYER_1
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  12/10/2017  21:38:06  PAGE 2
+
+
   C:00ACH         SYMBOL        SEGMENT_NUMBERDISPLAYER_2
   C:00BCH         SYMBOL        SEGMENT_NUMBERDISPLAYER_3
   C:00CCH         SYMBOL        SEGMENT_NUMBERDISPLAYER_4
@@ -119,9 +75,6 @@ SYMBOL TABLE OF MODULE:  .\Objects\HW4 (?C_STARTUP)
   C:0008H         SYMBOL        SETUP
   B:00A0H.0       SYMBOL        SWITCH
   C:0000H         LINE#         39
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  12/10/2017  21:19:04  PAGE 3
-
-
   C:0002H         LINE#         40
   C:0004H         LINE#         41
   C:0006H         LINE#         42
@@ -166,6 +119,9 @@ SYMBOL TABLE OF MODULE:  .\Objects\HW4 (?C_STARTUP)
   C:004EH         LINE#         114
   C:0050H         LINE#         123
   C:0052H         LINE#         124
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  12/10/2017  21:38:06  PAGE 3
+
+
   C:0054H         LINE#         125
   C:0057H         LINE#         127
   C:0059H         LINE#         128
@@ -179,9 +135,6 @@ SYMBOL TABLE OF MODULE:  .\Objects\HW4 (?C_STARTUP)
   C:006CH         LINE#         137
   C:006FH         LINE#         139
   C:0071H         LINE#         140
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  12/10/2017  21:19:04  PAGE 4
-
-
   C:0074H         LINE#         141
   C:0076H         LINE#         142
   C:0078H         LINE#         143
@@ -226,6 +179,9 @@ SYMBOL TABLE OF MODULE:  .\Objects\HW4 (?C_STARTUP)
   C:00C7H         LINE#         199
   C:00C9H         LINE#         200
   C:00CBH         LINE#         201
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  12/10/2017  21:38:06  PAGE 4
+
+
   C:00CCH         LINE#         205
   C:00CFH         LINE#         206
   C:00D1H         LINE#         207
@@ -239,9 +195,6 @@ SYMBOL TABLE OF MODULE:  .\Objects\HW4 (?C_STARTUP)
   C:00E1H         LINE#         218
   C:00E3H         LINE#         219
   C:00E5H         LINE#         220
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  12/10/2017  21:19:04  PAGE 5
-
-
   C:00E7H         LINE#         221
   C:00E9H         LINE#         222
   C:00EAH         LINE#         226
@@ -279,22 +232,9 @@ SYMBOL TABLE OF MODULE:  .\Objects\HW4 (?C_STARTUP)
   C:012AH         LINE#         267
   -------         ENDMOD        HW4_ASM
 
-*** WARNING L5: CODE SPACE MEMORY OVERLAP
-    FROM:    0000H
-    TO:      0002H
-
-*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
-    SYMBOL:  ?C_START
-    MODULE:  .\Objects\STARTUP.obj (?C_STARTUP)
-
-*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
-    SYMBOL:  ?C_START
-    MODULE:  .\Objects\STARTUP.obj (?C_STARTUP)
-    ADDRESS: 080AH
-
 ******************************************************************************
-* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 013AH BYTE (15%) *
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 012BH BYTE (14%) *
 ******************************************************************************
 
-Program Size: data=9.0 xdata=0 code=314
-LINK/LOCATE RUN COMPLETE.  3 WARNING(S),  0 ERROR(S)
+Program Size: data=8.0 xdata=0 code=299
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
