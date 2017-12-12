@@ -1,4 +1,4 @@
-A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:37:01 PAGE     1
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/12/2017 12:11:00 PAGE     1
 
 
 MACRO ASSEMBLER A51 V8.2.7.0
@@ -65,7 +65,7 @@ LOC  OBJ            LINE     SOURCE
 001B 8000             55             JMP Segment_Loop
                       56     
                       57     
-A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:37:01 PAGE     2
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/12/2017 12:11:00 PAGE     2
 
                       58             
                       59     
@@ -133,7 +133,7 @@ LOC  OBJ            LINE     SOURCE
                      119     
                      120             ; for choose the segment bit.
 0050                 121             Segment_Chooser:
-A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:37:01 PAGE     3
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/12/2017 12:11:00 PAGE     3
 
 0050                 122                     Segment_Chooser_0:
 0050 D290            123                             SETB SEGMENT0_ENABLE
@@ -201,7 +201,7 @@ LOC  OBJ            LINE     SOURCE
 00AC                 181                     Segment_Numberdisplayer_2:
                      182                     ;segment 2
 00AC BE020D          183                             CJNE R6,#2,Segment_Numberdisplayer_3
-A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:37:01 PAGE     4
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/12/2017 12:11:00 PAGE     4
 
 00AF D2A0            184                             SETB SEGMENT_A
 00B1 D2A1            185                             SETB SEGMENT_B
@@ -269,7 +269,7 @@ LOC  OBJ            LINE     SOURCE
 0109 D2A0            247                             SETB SEGMENT_A
 010B D2A1            248                             SETB SEGMENT_B
 010D D2A2            249                             SETB SEGMENT_C
-A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:37:01 PAGE     5
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/12/2017 12:11:00 PAGE     5
 
 010F D2A3            250                             SETB SEGMENT_D
 0111 D2A4            251                             SETB SEGMENT_E
@@ -291,7 +291,7 @@ LOC  OBJ            LINE     SOURCE
 012A 22              267                             RET 
                      268     
                      269     END
-A51 MACRO ASSEMBLER  HW4_ASM                                                              12/10/2017 21:37:01 PAGE     6
+A51 MACRO ASSEMBLER  HW4_ASM                                                              12/12/2017 12:11:00 PAGE     6
 
 SYMBOL TABLE LISTING
 ------ ----- -------

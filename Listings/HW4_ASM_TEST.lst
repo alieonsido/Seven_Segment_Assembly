@@ -1,0 +1,67 @@
+A51 MACRO ASSEMBLER  HW4_ASM_TEST                                                         12/12/2017 12:11:00 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.2.7.0
+OBJECT MODULE PLACED IN .\Objects\HW4_ASM_TEST.obj
+ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE HW4_ASM_TEST.asm SET(SMALL) DEBUG PRINT(.\Listings\HW4_ASM_TEST.lst) OB
+                      JECT(.\Objects\HW4_ASM_TEST.obj) EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     
+  00A0                 2     SWITCH EQU P2.0
+                       3     
+  0090                 4     SEGMENT0_ENABLE EQU P1.0 
+  0091                 5     SEGMENT1_ENABLE EQU P1.1
+  0092                 6     SEGMENT2_ENABLE EQU P1.2
+  0093                 7     SEGMENT3_ENABLE EQU P1.3
+                       8     
+  00A0                 9     SEGMENT_A EQU P2.0
+  00A1                10     SEGMENT_B EQU P2.1
+  00A2                11     SEGMENT_C EQU P2.2
+  00A3                12     SEGMENT_D EQU P2.3
+  00A4                13     SEGMENT_E EQU P2.4
+  00A5                14     SEGMENT_F EQU P2.5
+  00A6                15     SEGMENT_G EQU P2.6
+  00A7                16     SEGMENT_DOT EQU P2.7
+                      17     
+0000                  18     ORG 0000H
+0000 E500             19     MOV A,00H 
+0002 F5A0             20     MOV P2,A ;P2 = ""All"" of Port 2 
+0004 F590             21     MOV P1,A
+                      22     
+0006 D290             23     SETB SEGMENT0_ENABLE
+0008 D2A0             24     SETB SEGMENT_A
+                      25     
+                      26     
+                      27     END
+                             
+A51 MACRO ASSEMBLER  HW4_ASM_TEST                                                         12/12/2017 12:11:00 PAGE     2
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+P1 . . . . . . . .  D ADDR   0090H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+SEGMENT0_ENABLE. .  B ADDR   0090H.0 A   
+SEGMENT1_ENABLE. .  B ADDR   0090H.1 A   
+SEGMENT2_ENABLE. .  B ADDR   0090H.2 A   
+SEGMENT3_ENABLE. .  B ADDR   0090H.3 A   
+SEGMENT_A. . . . .  B ADDR   00A0H.0 A   
+SEGMENT_B. . . . .  B ADDR   00A0H.1 A   
+SEGMENT_C. . . . .  B ADDR   00A0H.2 A   
+SEGMENT_D. . . . .  B ADDR   00A0H.3 A   
+SEGMENT_DOT. . . .  B ADDR   00A0H.7 A   
+SEGMENT_E. . . . .  B ADDR   00A0H.4 A   
+SEGMENT_F. . . . .  B ADDR   00A0H.5 A   
+SEGMENT_G. . . . .  B ADDR   00A0H.6 A   
+SWITCH . . . . . .  B ADDR   00A0H.0 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

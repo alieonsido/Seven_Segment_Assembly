@@ -49,7 +49,7 @@
           <OutputName>HW4</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>0</CreateHexFile>
+          <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
           <ListingPath>.\Listings\</ListingPath>
@@ -231,7 +231,7 @@
               <RCB>
                 <Type>0</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0xffff</Size>
               </RCB>
               <RXB>
                 <Type>0</Type>
@@ -365,9 +365,9 @@
           <GroupName>Source Group 1</GroupName>
           <Files>
             <File>
-              <FileName>HW4_ASM.asm</FileName>
+              <FileName>HW4_ASM_TEST.asm</FileName>
               <FileType>2</FileType>
-              <FilePath>.\HW4_ASM.asm</FilePath>
+              <FilePath>.\HW4_ASM_TEST.asm</FilePath>
             </File>
           </Files>
         </Group>
