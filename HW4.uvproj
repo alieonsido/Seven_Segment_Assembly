@@ -365,9 +365,9 @@
           <GroupName>Source Group 1</GroupName>
           <Files>
             <File>
-              <FileName>HW4_ASM_commonpositive.asm</FileName>
+              <FileName>HW4_ASM_2.asm</FileName>
               <FileType>2</FileType>
-              <FilePath>.\HW4_ASM_commonpositive.asm</FilePath>
+              <FilePath>.\HW4_ASM_2.asm</FilePath>
             </File>
           </Files>
         </Group>

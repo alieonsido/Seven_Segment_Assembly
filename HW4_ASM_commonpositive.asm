@@ -109,7 +109,8 @@ Segment_Adder:
 			INC A
 			MOV R3,A
 			MOV R2,#00H
-			JMP Segment_Carry_Complete
+			CJNE R3,#0AH,Segment_Carry_Complete
+			JMP Segment_Clear
 
 		Segment_Carry_R1toR2:
 			CJNE R1,#0AH,Segment_Carry_R0toR1
@@ -136,6 +137,12 @@ Segment_Adder:
 		JMP Segment_Loop 
 	;Warning: you can't JMP to Segment_Numberdisplayer directly, or you won't ba able to back Segment_Adder.
 
+	Segment_Clear:
+		MOV R3,#0
+		MOV R2,#0
+		MOV R1,#0
+		MOV R0,#0
+		JMP Segment_Loop
 
 Delay_Time0:
 	;The test environment is 12MHZ,so that 1/12 * 12MHZ (this is for machine cycle) = 1MHZ

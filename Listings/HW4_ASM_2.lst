@@ -1,8 +1,8 @@
-A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/10/2017 21:18:50 PAGE     1
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     1
 
 
 MACRO ASSEMBLER A51 V8.2.7.0
-NO OBJECT MODULE REQUESTED
+OBJECT MODULE PLACED IN .\Objects\HW4_ASM_2.obj
 ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE HW4_ASM_2.asm SET(SMALL) DEBUG PRINT(.\Listings\HW4_ASM_2.lst) OBJECT(.
                       \Objects\HW4_ASM_2.obj) EP
 
@@ -17,12 +17,12 @@ LOC  OBJ            LINE     SOURCE
                        7     
                        8     ; ----------------defination
                        9     
-  00A0                10     SWITCH EQU P2.0
+  00B3                10     SWITCH EQU P3.3 ;INT1
                       11     
-  0090                12     SEGMENT0_ENABLE EQU P1.0 
-  0091                13     SEGMENT1_ENABLE EQU P1.1
-  0092                14     SEGMENT2_ENABLE EQU P1.2
-  0093                15     SEGMENT3_ENABLE EQU P1.3
+  0093                12     SEGMENT0_ENABLE EQU P1.3 
+  0092                13     SEGMENT1_ENABLE EQU P1.2
+  0091                14     SEGMENT2_ENABLE EQU P1.1
+  0090                15     SEGMENT3_ENABLE EQU P1.0
                       16     
   00A0                17     SEGMENT_A EQU P2.0
   00A1                18     SEGMENT_B EQU P2.1
@@ -33,346 +33,506 @@ LOC  OBJ            LINE     SOURCE
   00A6                23     SEGMENT_G EQU P2.6
   00A7                24     SEGMENT_DOT EQU P2.7
                       25     
-                      26     
-                      27     ; ----------------defination
-                      28     
-                      29     ; Notes:
-                      30             ; MOV P2,A let all of P2 be zero.
-                      31             ; R0 R1 R2 R3 is used to be set "value".
-                      32             ; R4 is FLAG for adder triggered
-                      33             ; R5 is used to save the carry.
-                      34             ; R6 is used to be displayer.
-                      35     
-                      36     
-                      37     ; Setup.
-0000                  38     ORG 0000H
-0000 E500             39     MOV A,00H 
-0002 F5A0             40     MOV P2,A ;P2 = ""All"" of Port 2 
-0004 F590             41     MOV P1,A
-0006 0108             42     AJMP Setup
-                      43     
-0008                  44     Setup:
-                      45             ;Number Initial
-0008 A800             46             MOV R0,0
-000A A900             47             MOV R1,0
-000C AA00             48             MOV R2,0
-000E AB00             49             MOV R3,0
-0010 AC01             50             MOV R4,1 ;for first equal checker & update initial state.
-0012 AD00             51             MOV R5,0
-0014 AE00             52             MOV R6,0
-0016 AF00             53             MOV R7,0
-0018 12004A           54             LCALL Segment_Update
-001B 8000             55             JMP Segment_Loop
-                      56     
-                      57     
-A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/10/2017 21:18:50 PAGE     2
+  0005                26     DELAYTIME EQU 5
+                      27     
+                      28     ; ----------------defination
+                      29     
+                      30     ; Notes:
+                      31             ; MOV P2,A let all of P2 be zero.
+                      32             ; R0 R1 R2 R3 is used to be set "value".
+                      33             ; R4 is FLAG for timer.
+                      34             ; R5 is used to save the carry.
+                      35             ; R6 is used to be displayer.
+                      36             ; R7 is for blink counter 
+                      37     ; Notice:You need to stay alert on GPIO's speed, or you will find that the segment will be 
+                             confusion.
+                      38             ; Timer 0 is used to debounce
+                      39             ; Timer 1 is used to lag Segment.
+                      40     
+                      41     ; Setup.
+0000                  42     ORG 0000H
+0000 E500             43     MOV A,00H 
+0002 F5A0             44     MOV P2,A ;P2 = ""All"" of Port 2 
+0004 F590             45     MOV P1,A
+0006 0117             46     AJMP Setup
+                      47     
+                      48     
+                      49     ; Interrupt 
+0013                  50     ORG 0013H ; Interrupt 1 Address
+0013 120046           51     LCALL Interrupt_event
+0016 32               52     RETI
+                      53     
+0017                  54     Setup:
+                      55             ;Number Initial
+0017 7800             56             MOV R0,#0
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     2
 
-                      58             
-                      59     
-                      60             
-                      61     ; for scan every segment loop, and it's main code.
-                      62     ; Segment_Chooser include displayer.
-001D                  63     Segment_Loop:
-001D 30A005           64             JNB SWITCH,Segment_Adder
-0020 12004A           65             LCALL Segment_Update
-0023 80F8             66             JMP Segment_Loop
-                      67             
-                      68     
-                      69     
-                      70     
-                      71     ; for the number of every segment.
-0025                  72     Segment_Adder:
-0025 20A0FD           73             JB SWITCH, Segment_Adder ;debounce
+0019 7900             57             MOV R1,#0
+001B 7A00             58             MOV R2,#0
+001D 7B00             59             MOV R3,#0
+001F 7C05             60             MOV R4,#DELAYTIME ;for Timer0 5 * 500 micro second is 2500 micro second = 2.5ms. 
+                      61                     ;Warning:the Timer is not accurate, it will be effect by other instruction.
+0021 7D00             62             MOV R5,#0
+0023 7E00             63             MOV R6,#0
+0025 7F00             64             MOV R7,#0
+0027 75813F           65             MOV sp,#3FH
+                      66             
+                      67             ;timer Initial.
+002A 758911           68             MOV tmod,#00010001b  ;setting timer0 and timer 1 in MODE 1, Total range is 16bit.(T
+                             H+TL)
+                      69             
+002D 85138C           70             MOV TH0,0013H  
+0030 85888A           71             MOV TL0,0088H
+                      72             ;totally is 5000 micro second = 5ms
+0033 D28C             73             SETB TR0
                       74     
-0028 E8               75             MOV A,R0
-0029 04               76             INC A
-002A F8               77             MOV R0,A
+0035 85008D           75             MOV TH1,00H
+0038 85018B           76             MOV TL1,01H
+                      77     
                       78     
-002B B80A17           79             CJNE R0,#0AH,Segment_Non_Carry ; because this is a add 1 circuit, we only need to c
-                             are the LSB.
-                      80             
-                      81     
-                      82             ;uncomplete
-002E                  83             Segment_Carry:
-002E BA0A03           84                     CJNE R2,#0AH,Segment_Carry_R1toR2
-0031                  85                     Segment_Carry_R2toR3:
-0031 EB               86                             MOV A,R3
-0032 04               87                             INC A
-0033 FB               88                             MOV R3,A
-0034                  89                             CLR R2
-*** _____________________________________________________^
-*** ERROR #A40 IN 89 (HW4_ASM_2.asm, LINE 89): INVALID REGISTER
-                      90     
-0034                  91                     Segment_Carry_R1toR2:
-0034 B90A03           92                             CJNE R1,#0AH,Segment_Carry_R0toR1
-0037 EA               93                             MOV A,R2
-0038 04               94                             INC A
-0039 FA               95                             MOV R2,A
-003A                  96                             CLR R1
-*** _____________________________________________________^
-*** ERROR #A40 IN 96 (HW4_ASM_2.asm, LINE 96): INVALID REGISTER
-                      97     
-003A                  98                     Segment_Carry_R0toR1:
-003A B80A03           99                             CJNE R0,#0AH,Segment_Carry_Complete
-003D E9              100                             MOV A,R1
-003E 04              101                             INC A
-003F F9              102                             MOV R1,A
-0040                 103                             CLR R0
-*** _____________________________________________________^
-*** ERROR #A40 IN 103 (HW4_ASM_2.asm, LINE 103): INVALID REGISTER
-                     104     
-0040                 105                     Segment_Carry_Complete:
-0040 E4              106                             CLR A 
-0041 7C01            107                             MOV R4,#1 ; flag
-0043 80D8            108                             JMP Segment_Loop 
-                     109     
-0045                 110             Segment_Non_Carry:
-                     111                     ;MOV R4,A
-0045 E4              112                     CLR A
-0046 7C01            113                     MOV R4,#1 ; flag
-0048 80D3            114                     JMP Segment_Loop 
-                     115             ;Warning: you can't JMP to Segment_Numberdisplayer directly, or you won't ba able to back Segment_Adder.
-                     116     
-A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/10/2017 21:18:50 PAGE     3
+                      79             ; for Interrupt Initial.
+003B D2AF             80             SETB EA
+003D D2AA             81             SETB EX1
+003F D28A             82             SETB IT1 ; for INT1 low edge trigger 
+                      83     
+0041 1200ED           84             LCALL Segment_Update
+0044 8031             85             JMP Segment_Loop
+                      86     
+                      87     ;uncomplete
+0046                  88     Interrupt_event:
+0046 C28C             89             CLR TR0
+0048 7804             90             MOV R0,#4
+004A 7900             91             MOV R1,#0
+004C 7A00             92             MOV R2,#0
+004E 7B00             93             MOV R3,#0
+0050 7C05             94             MOV R4,#DELAYTIME;
+0052 D28C             95             SETB TR0
+                      96     
+0054                  97             Segment_Light_Interrupt:
+0054 1200ED           98                     LCALL Segment_Update
+0057 120096           99                     LCALL Time_Checker
+005A BC00F7          100                     CJNE R4,#0,Segment_Light_Interrupt
+                     101     
+005D 7C05            102                     MOV R4,#DELAYTIME ;For next Initial
+                     103     
+005F                 104             Segment_Extinguish_Interrupt:
+005F 120082          105                     LCALL Delay_Time0 ;delay 5ms
+0062 EC              106                     MOV A,R4
+0063 14              107                     DEC A
+0064 FC              108                     MOV R4,A
+0065 BC00F7          109                     CJNE R4,#0,Segment_Extinguish_Interrupt ;5ms * 100 = 500ms
+                     110     
+0068 EF              111             MOV A,R7
+0069 04              112             INC A
+006A FF              113             MOV R7,A
+006B BF03D8          114             CJNE R7,#03H,Interrupt_event
+                     115     
+006E 7F00            116             MOV R7,#00H
+0070 7C05            117             MOV R4,#DELAYTIME
+0072 C28C            118             CLR TR0
+0074 D28C            119             SETB TR0
+0076 22              120             RET
+                     121     
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     3
 
-                     117     
-004A                 118     Segment_Update:
-                     119     
-                     120             ; for choose the segment bit.
-004A                 121             Segment_Chooser:
-004A                 122                     Segment_Chooser_0:
-004A D290            123                             SETB SEGMENT0_ENABLE
-004C                 124                             MOV R6,R0 ; for displayer's check.
-*** _____________________________________________________^
-*** ERROR #A40 IN 124 (HW4_ASM_2.asm, LINE 124): INVALID REGISTER
-004C 120082          125                             LCALL Segment_Numberdisplayer
-004F                 126                     Segment_Chooser_1:
-004F C290            127                             CLR SEGMENT0_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
-0051 120073          128                             LCALL Segment_Privious_Clear
-0054 D291            129                             SETB SEGMENT1_ENABLE
-0056                 130                             MOV R6,R1 ; for displayer's check.
-*** _____________________________________________________^
-*** ERROR #A40 IN 130 (HW4_ASM_2.asm, LINE 130): INVALID REGISTER
-0056 120082          131                             LCALL Segment_Numberdisplayer
-0059                 132                     Segment_Chooser_2:
-0059 C291            133                             CLR SEGMENT1_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
-005B 120073          134                             LCALL Segment_Privious_Clear
-005E D292            135                             SETB SEGMENT2_ENABLE
-0060                 136                             MOV R6,R2 ; for displayer's check.
-*** _____________________________________________________^
-*** ERROR #A40 IN 136 (HW4_ASM_2.asm, LINE 136): INVALID REGISTER
-0060 120082          137                             LCALL Segment_Numberdisplayer
-0063                 138                     Segment_Chooser_3:
-0063 C292            139                             CLR SEGMENT2_ENABLE ;you need to clean the previous SEGMENT or you will get the previous status.
-0065 120073          140                             LCALL Segment_Privious_Clear
-0068 D293            141                             SETB SEGMENT3_ENABLE
-006A                 142                             MOV R6,R3 ; for displayer's check.
-*** _____________________________________________________^
-*** ERROR #A40 IN 142 (HW4_ASM_2.asm, LINE 142): INVALID REGISTER
-006A 120082          143                             LCALL Segment_Numberdisplayer 
-006D C293            144                             CLR SEGMENT3_ENABLE ; It must be clear itself.
-006F 120073          145                             LCALL Segment_Privious_Clear
-0072 22              146                     RET ;pop the stack, and you can back the main code.
-                     147     
-0073                 148             Segment_Privious_Clear:
-0073 C2A0            149                     CLR SEGMENT_A
-0075 C2A1            150                     CLR SEGMENT_B
-0077 C2A2            151                     CLR SEGMENT_C
-0079 C2A3            152                     CLR SEGMENT_D
-007B C2A4            153                     CLR SEGMENT_E
-007D C2A5            154                     CLR SEGMENT_F
-007F C2A6            155                     CLR SEGMENT_G
-0081 22              156                     RET
-                     157                     
-                     158             ; for number display and replace the position of Array.
-0082                 159             Segment_Numberdisplayer:
-                     160     
-0082                 161                     Segment_Numberdisplayer_0:
-                     162                     ;segment 0
-0082 BE000D          163                             CJNE R6,#0,Segment_Numberdisplayer_1
-0085 D2A0            164                             SETB SEGMENT_A
-0087 D2A1            165                             SETB SEGMENT_B
-0089 D2A2            166                             SETB SEGMENT_C
-008B D2A3            167                             SETB SEGMENT_D
-008D D2A4            168                             SETB SEGMENT_E
-008F D2A5            169                             SETB SEGMENT_F
-0091                 170                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 170 (HW4_ASM_2.asm, LINE 170): INVALID REGISTER
-0091 22              171                             RET  ;when display complete, you need to back to choose next one which need to display. 
-                     172                     
-A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/10/2017 21:18:50 PAGE     4
-
-0092                 173                     Segment_Numberdisplayer_1:
-                     174                     ;segment 1
-0092 BE0105          175                             CJNE R6,#1,Segment_Numberdisplayer_2
-0095 D2A1            176                             SETB SEGMENT_B
-0097 D2A2            177                             SETB SEGMENT_C
-0099                 178                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 178 (HW4_ASM_2.asm, LINE 178): INVALID REGISTER
-0099 22              179                             RET 
+                     122             
+                     123     ; for scan every segment loop, and it's main code.
+                     124     ; Segment_Chooser include displayer.
+0077                 125     Segment_Loop:
+0077 1200ED          126             LCALL Segment_Update
+007A 120096          127             LCALL Time_Checker
+007D BC00F7          128             CJNE R4,#0000H,Segment_Loop ;C8H = 12*16 + 8 = 200(dec)
+0080 8024            129             JMP Segment_Adder
+                     130             
+                     131     
+0082                 132     Delay_Time0:
+                     133             ;The test environment is 12MHZ,so that 1/12 * 12MHZ (this is for machine cycle) = 1
+                             MHZ
+                     134             ;and, 1/(1M) second =  1 micro second, every 1 micro second will add the Timer once.
+                     135     
+                     136             ; I want 30 micro second , so we must initial set range.
+0082 D28C            137             SETB TR0 ; set Timer 0 to use.
+0084                 138             Delay_Time0_Working:
+0084 308DFD          139                     JNB TF0,Delay_Time0_Working ; if the time is up, the Timer Flag(TF) will fr
+                             om zero to one.
+0087 C28D            140                     CLR TF0;
+0089 C28C            141                     CLR TR0;
+008B 22              142                     RET
+                     143     
+008C                 144     Delay_Time1:
+008C D28E            145             SETB TR1 ; set Timer 1 to use.
+008E                 146             Delay_Time1_Working:
+008E 308FFD          147                     JNB TF1,Delay_Time1_Working ; if the time is up, the Timer Flag(TF) will fr
+                             om zero to one.
+0091 C28F            148                     CLR TF1;
+0093 C28E            149                     CLR TR1;
+0095 22              150                     RET
+                     151     
+0096                 152     Time_Checker:
+                     153             ; count for R4 times.
+0096 208D02          154             JB TF0,Time_Up
+0099 800A            155             JMP Time_Not_Up
+                     156     
+009B                 157             Time_Up:
+009B EC              158                     MOV A,R4
+                     159                     ;LCALL Delay_Time1
+009C 14              160                     DEC A
+009D FC              161                     MOV R4,A ;decrement R4.
+009E C28D            162                     CLR TF0
+00A0 C28C            163                     CLR TR0
+                     164                     ;LCALL Delay_Time1
+00A2 D28C            165                     SETB TR0
+00A4 22              166                     RET
+                     167             
+00A5                 168             Time_Not_Up:
+00A5 22              169                     RET
+                     170     
+                     171     
+                     172     ; for the number of every segment.
+00A6                 173     Segment_Adder:
+                     174     
+00A6 E8              175             MOV A,R0
+                     176             ;LCALL Delay_Time1
+00A7 04              177             INC A
+00A8 F8              178             MOV R0,A
+00A9 E4              179             CLR A
                      180     
-009A                 181                     Segment_Numberdisplayer_2:
-                     182                     ;segment 2
-009A BE020B          183                             CJNE R6,#2,Segment_Numberdisplayer_3
-009D D2A0            184                             SETB SEGMENT_A
-009F D2A1            185                             SETB SEGMENT_B
-00A1 D2A3            186                             SETB SEGMENT_D
-00A3 D2A4            187                             SETB SEGMENT_E
-00A5 D2A6            188                             SETB SEGMENT_G
-00A7                 189                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 189 (HW4_ASM_2.asm, LINE 189): INVALID REGISTER
-00A7 22              190                             RET 
-                     191     
-00A8                 192                     Segment_Numberdisplayer_3:
-                     193                     ;segment 3
-00A8 BE030B          194                             CJNE R6,#3,Segment_Numberdisplayer_4
-00AB D2A0            195                             SETB SEGMENT_A
-00AD D2A1            196                             SETB SEGMENT_B
-00AF D2A2            197                             SETB SEGMENT_C
-00B1 D2A3            198                             SETB SEGMENT_D
-00B3 D2A6            199                             SETB SEGMENT_G
-00B5                 200                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 200 (HW4_ASM_2.asm, LINE 200): INVALID REGISTER
-00B5 22              201                             RET 
-                     202     
-00B6                 203                     Segment_Numberdisplayer_4:
-                     204                     ;segment 4
-00B6 BE0409          205                             CJNE R6,#4,Segment_Numberdisplayer_5
-00B9 D2A1            206                             SETB SEGMENT_B
-00BB D2A2            207                             SETB SEGMENT_C
-00BD D2A5            208                             SETB SEGMENT_F
-00BF D2A6            209                             SETB SEGMENT_G
-00C1                 210                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 210 (HW4_ASM_2.asm, LINE 210): INVALID REGISTER
-00C1 22              211                             RET 
-                     212     
-00C2                 213                     Segment_Numberdisplayer_5:
-                     214                     ;segment 5
-00C2 BE050B          215                             CJNE R6,#5,Segment_Numberdisplayer_6
-00C5 D2A0            216                             SETB SEGMENT_A
-00C7 D2A2            217                             SETB SEGMENT_C
-00C9 D2A3            218                             SETB SEGMENT_D
-00CB D2A5            219                             SETB SEGMENT_F
-00CD D2A6            220                             SETB SEGMENT_G
-00CF                 221                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 221 (HW4_ASM_2.asm, LINE 221): INVALID REGISTER
-00CF 22              222                             RET 
-                     223     
-00D0                 224                     Segment_Numberdisplayer_6:
-                     225                     ;segment 6
-00D0 BE060B          226                             CJNE R6,#6,Segment_Numberdisplayer_7
-00D3 D2A2            227                             SETB SEGMENT_C
-00D5 D2A3            228                             SETB SEGMENT_D
-A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/10/2017 21:18:50 PAGE     5
+                     181             ;LCALL Delay_Time1
+                     182     
+00AA B80A2E          183             CJNE R0,#0AH,Segment_Non_Carry ; because this is a add 1 circuit, we only need to c
+                             are the LSB.
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     4
 
-00D7 D2A4            229                             SETB SEGMENT_E
-00D9 D2A5            230                             SETB SEGMENT_F
-00DB D2A6            231                             SETB SEGMENT_G
-00DD                 232                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 232 (HW4_ASM_2.asm, LINE 232): INVALID REGISTER
-00DD 22              233                             RET 
+00AD 8017            184             JMP Segment_Carry_R0toR1
+                     185     
+00AF                 186             Segment_Carry:
+00AF                 187                     Segment_Carry_R2toR3:
+00AF EB              188                             MOV A,R3
+00B0 04              189                             INC A
+00B1 FB              190                             MOV R3,A
+00B2 7A00            191                             MOV R2,#00H
+00B4 BB0A1C          192                             CJNE R3,#0AH,Segment_Carry_Complete
+00B7 802A            193                             JMP Segment_Clear
+                     194     
+00B9                 195                     Segment_Carry_R1toR2:
+00B9 B90A0A          196                             CJNE R1,#0AH,Segment_Carry_R0toR1
+00BC EA              197                             MOV A,R2
+00BD 04              198                             INC A
+00BE FA              199                             MOV R2,A
+00BF 7900            200                             MOV R1,#00H
+00C1 BA0A0F          201                             CJNE R2,#0AH,Segment_Carry_Complete
+00C4 80E9            202                             JMP Segment_Carry_R2toR3
+                     203     
+00C6                 204                     Segment_Carry_R0toR1:
+00C6 B80A0A          205                             CJNE R0,#0AH,Segment_Carry_Complete
+00C9 E9              206                             MOV A,R1
+00CA 04              207                             INC A
+00CB F9              208                             MOV R1,A
+00CC 7800            209                             MOV R0,#00H
+00CE B90A02          210                             CJNE R1,#0AH,Segment_Carry_Complete
+00D1 80E6            211                             JMP Segment_Carry_R1toR2
+                     212     
+00D3                 213                     Segment_Carry_Complete:
+00D3 C28C            214                             CLR TR0
+00D5 D28C            215                             SETB TR0 ; reset for next loop. 
+00D7 7C05            216                             MOV R4,#DELAYTIME ; reset for next loop.
+00D9 809C            217                             JMP Segment_Loop 
+                     218     
+00DB                 219             Segment_Non_Carry:
+00DB C28C            220                     CLR TR0
+00DD D28C            221                     SETB TR0 ; reset for next loop. 
+00DF 7C05            222                     MOV R4,#DELAYTIME ; reset for next loop.
+00E1 8094            223                     JMP Segment_Loop 
+                     224             ;Warning: you can't JMP to Segment_Numberdisplayer directly, or you won't ba able t
+                             o back Segment_Adder.
+00E3                 225             Segment_Clear:
+00E3 7B00            226                     MOV R3,#0
+00E5 7A00            227                     MOV R2,#0
+00E7 7900            228                     MOV R1,#0
+00E9 7800            229                     MOV R0,#0
+00EB 808A            230                     JMP Segment_Loop
+                     231     
+                     232     
+                     233     
                      234     
-00DE                 235                     Segment_Numberdisplayer_7:
-                     236                     ;segment 7
-00DE BE0707          237                             CJNE R6,#7,Segment_Numberdisplayer_8
-00E1 D2A0            238                             SETB SEGMENT_A
-00E3 D2A1            239                             SETB SEGMENT_B
-00E5 D2A2            240                             SETB SEGMENT_C
-00E7                 241                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 241 (HW4_ASM_2.asm, LINE 241): INVALID REGISTER
-00E7 22              242                             RET 
-                     243     
-00E8                 244                     Segment_Numberdisplayer_8:
-                     245                     ;segment 8
-00E8 BE080F          246                             CJNE R6,#8,Segment_Numberdisplayer_9
-00EB D2A0            247                             SETB SEGMENT_A
-00ED D2A1            248                             SETB SEGMENT_B
-00EF D2A2            249                             SETB SEGMENT_C
-00F1 D2A3            250                             SETB SEGMENT_D
-00F3 D2A4            251                             SETB SEGMENT_E
-00F5 D2A5            252                             SETB SEGMENT_F
-00F7 D2A6            253                             SETB SEGMENT_G
-00F9                 254                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 254 (HW4_ASM_2.asm, LINE 254): INVALID REGISTER
-00F9 22              255                             RET 
-                     256     
-00FA                 257                     Segment_Numberdisplayer_9:
-                     258                     ;segment 9
-00FA D2A0            259                             SETB SEGMENT_A
-00FC D2A1            260                             SETB SEGMENT_B
-00FE D2A2            261                             SETB SEGMENT_C
-0100 D2A3            262                             SETB SEGMENT_D
-0102 D2A4            263                             SETB SEGMENT_E
-0104 D2A5            264                             SETB SEGMENT_F
-0106 D2A6            265                             SETB SEGMENT_G
-0108                 266                             CLR R6
-*** _____________________________________________________^
-*** ERROR #A40 IN 266 (HW4_ASM_2.asm, LINE 266): INVALID REGISTER
-0108 22              267                             RET 
-                     268     
-                     269             END
-A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/10/2017 21:18:50 PAGE     6
+00ED                 235     Segment_Update:
+                     236     
+                     237             ; for choose the segment bit.
+00ED                 238             Segment_Chooser:
+00ED                 239                     Segment_Chooser_0:
+00ED C293            240                             CLR SEGMENT0_ENABLE ; the enable is low state trigger.
+00EF D292            241                             SETB SEGMENT1_ENABLE
+00F1 D291            242                             SETB SEGMENT2_ENABLE
+00F3 D290            243                             SETB SEGMENT3_ENABLE
+00F5 8806            244                             MOV 06H,R0 ; for displayer's check.
+00F7 120133          245                             LCALL Segment_Numberdisplayer
+00FA                 246                     Segment_Chooser_1:
+00FA D293            247                             SETB SEGMENT0_ENABLE ; 0 2 3
+00FC 120124          248                             LCALL Segment_Privious_Clear ;you need to clean the previous SEGMEN
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     5
+
+                             T or you will get the previous status.
+00FF C292            249                             CLR SEGMENT1_ENABLE 
+0101 8906            250                             MOV 06H,R1 ; for displayer's check.
+0103 120133          251                             LCALL Segment_Numberdisplayer
+0106                 252                     Segment_Chooser_2:
+0106 D292            253                             SETB SEGMENT1_ENABLE ; 0 1 3
+0108 120124          254                             LCALL Segment_Privious_Clear
+010B C291            255                             CLR SEGMENT2_ENABLE
+010D 8A06            256                             MOV 06H,R2 ; for displayer's check.
+010F 120133          257                             LCALL Segment_Numberdisplayer
+0112                 258                     Segment_Chooser_3:
+0112 D291            259                             SETB SEGMENT2_ENABLE ; 0 1 2
+0114 120124          260                             LCALL Segment_Privious_Clear
+0117 C290            261                             CLR SEGMENT3_ENABLE 
+0119 8B06            262                             MOV 06H,R3 ; for displayer's check.
+011B 120133          263                             LCALL Segment_Numberdisplayer 
+011E D290            264                             SETB SEGMENT3_ENABLE ; It must be clear itself. 0 1 2 3
+0120 120124          265                             LCALL Segment_Privious_Clear
+0123 22              266                     RET ;pop the stack, and you can back the main code.
+                     267     
+0124                 268             Segment_Privious_Clear:
+0124 D2A0            269                     SETB SEGMENT_A
+0126 D2A1            270                     SETB SEGMENT_B
+0128 D2A2            271                     SETB SEGMENT_C
+012A D2A3            272                     SETB SEGMENT_D
+012C D2A4            273                     SETB SEGMENT_E
+012E D2A5            274                     SETB SEGMENT_F
+0130 D2A6            275                     SETB SEGMENT_G
+0132 22              276                     RET
+                     277                     
+                     278             ; for number display and replace the position of Array.
+0133                 279             Segment_Numberdisplayer:
+                     280     
+0133                 281                     Segment_Numberdisplayer_0:
+                     282                     ;segment 0
+0133 BE0013          283                             CJNE R6,#0,Segment_Numberdisplayer_1
+0136 C2A0            284                             CLR SEGMENT_A
+0138 C2A1            285                             CLR SEGMENT_B
+013A C2A2            286                             CLR SEGMENT_C
+013C C2A3            287                             CLR SEGMENT_D
+013E C2A4            288                             CLR SEGMENT_E
+0140 C2A5            289                             CLR SEGMENT_F
+0142 D2A6            290                             SETB SEGMENT_G
+0144 D2A7            291                             SETB SEGMENT_DOT
+0146 7E00            292                             MOV R6,#0
+0148 22              293                             RET  ;when display complete, you need to back to choose next one wh
+                             ich need to display. 
+                     294                     
+0149                 295                     Segment_Numberdisplayer_1:
+                     296                     ;segment 1
+0149 BE0113          297                             CJNE R6,#1,Segment_Numberdisplayer_2
+014C C2A1            298                             CLR SEGMENT_B
+014E C2A2            299                             CLR SEGMENT_C
+                     300     
+0150 D2A0            301                             SETB SEGMENT_A
+0152 D2A3            302                             SETB SEGMENT_D
+0154 D2A4            303                             SETB SEGMENT_E
+0156 D2A5            304                             SETB SEGMENT_F
+0158 D2A6            305                             SETB SEGMENT_G
+015A D2A7            306                             SETB SEGMENT_DOT
+015C 7E00            307                             MOV R6,#0
+015E 22              308                             RET 
+                     309     
+015F                 310                     Segment_Numberdisplayer_2:
+                     311                     ;segment 2
+015F BE0213          312                             CJNE R6,#2,Segment_Numberdisplayer_3
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     6
+
+0162 C2A0            313                             CLR SEGMENT_A
+0164 C2A1            314                             CLR SEGMENT_B
+0166 D2A2            315                             SETB SEGMENT_C
+0168 C2A3            316                             CLR SEGMENT_D
+016A C2A4            317                             CLR SEGMENT_E
+016C D2A5            318                             SETB SEGMENT_F
+016E C2A6            319                             CLR SEGMENT_G
+0170 D2A7            320                             SETB SEGMENT_DOT
+0172 7E00            321                             MOV R6,#0
+0174 22              322                             RET 
+                     323     
+0175                 324                     Segment_Numberdisplayer_3:
+                     325                     ;segment 3
+0175 BE0313          326                             CJNE R6,#3,Segment_Numberdisplayer_4
+0178 C2A0            327                             CLR SEGMENT_A
+017A C2A1            328                             CLR SEGMENT_B
+017C C2A2            329                             CLR SEGMENT_C
+017E C2A3            330                             CLR SEGMENT_D
+0180 D2A4            331                             SETB SEGMENT_E
+0182 D2A5            332                             SETB SEGMENT_F
+0184 C2A6            333                             CLR SEGMENT_G
+0186 D2A7            334                             SETB SEGMENT_DOT
+                     335     
+0188 7E00            336                             MOV R6,#0
+018A 22              337                             RET 
+                     338     
+018B                 339                     Segment_Numberdisplayer_4:
+                     340                     ;segment 4
+018B BE0413          341                             CJNE R6,#4,Segment_Numberdisplayer_5
+018E D2A0            342                             SETB SEGMENT_A
+0190 C2A1            343                             CLR SEGMENT_B
+0192 C2A2            344                             CLR SEGMENT_C
+0194 D2A3            345                             SETB SEGMENT_D
+0196 D2A4            346                             SETB SEGMENT_E
+0198 C2A5            347                             CLR SEGMENT_F
+019A C2A6            348                             CLR SEGMENT_G
+019C D2A7            349                             SETB SEGMENT_DOT
+019E 7E00            350                             MOV R6,#0
+01A0 22              351                             RET 
+                     352     
+01A1                 353                     Segment_Numberdisplayer_5:
+                     354                     ;segment 5
+01A1 BE0513          355                             CJNE R6,#5,Segment_Numberdisplayer_6
+01A4 C2A0            356                             CLR SEGMENT_A
+01A6 D2A1            357                             SETB SEGMENT_B
+01A8 C2A2            358                             CLR SEGMENT_C
+01AA C2A3            359                             CLR SEGMENT_D
+01AC D2A4            360                             SETB SEGMENT_E
+01AE C2A5            361                             CLR SEGMENT_F
+01B0 C2A6            362                             CLR SEGMENT_G
+01B2 D2A7            363                             SETB SEGMENT_DOT
+01B4 7E00            364                             MOV R6,#0
+01B6 22              365                             RET 
+                     366     
+01B7                 367                     Segment_Numberdisplayer_6:
+                     368                     ;segment 6
+01B7 BE0613          369                             CJNE R6,#6,Segment_Numberdisplayer_7
+01BA C2A0            370                             CLR SEGMENT_A
+01BC D2A1            371                             SETB SEGMENT_B
+01BE C2A2            372                             CLR SEGMENT_C
+01C0 C2A3            373                             CLR SEGMENT_D
+01C2 C2A4            374                             CLR SEGMENT_E
+01C4 C2A5            375                             CLR SEGMENT_F
+01C6 C2A6            376                             CLR SEGMENT_G
+01C8 D2A7            377                             SETB SEGMENT_DOT
+                     378     
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     7
+
+01CA 7E00            379                             MOV R6,#0
+01CC 22              380                             RET 
+                     381     
+01CD                 382                     Segment_Numberdisplayer_7:
+                     383                     ;segment 7
+01CD BE0713          384                             CJNE R6,#7,Segment_Numberdisplayer_8
+01D0 C2A0            385                             CLR SEGMENT_A
+01D2 C2A1            386                             CLR SEGMENT_B
+01D4 C2A2            387                             CLR SEGMENT_C
+01D6 D2A3            388                             SETB SEGMENT_D
+01D8 D2A4            389                             SETB SEGMENT_E
+01DA D2A5            390                             SETB SEGMENT_F
+01DC D2A6            391                             SETB SEGMENT_G
+01DE D2A7            392                             SETB SEGMENT_DOT
+01E0 7E00            393                             MOV R6,#0
+01E2 22              394                             RET 
+                     395     
+01E3                 396                     Segment_Numberdisplayer_8:
+                     397                     ;segment 8
+01E3 BE0813          398                             CJNE R6,#8,Segment_Numberdisplayer_9
+01E6 C2A0            399                             CLR SEGMENT_A
+01E8 C2A1            400                             CLR SEGMENT_B
+01EA C2A2            401                             CLR SEGMENT_C
+01EC C2A3            402                             CLR SEGMENT_D
+01EE C2A4            403                             CLR SEGMENT_E
+01F0 C2A5            404                             CLR SEGMENT_F
+01F2 C2A6            405                             CLR SEGMENT_G
+01F4 D2A7            406                             SETB SEGMENT_DOT
+01F6 7E00            407                             MOV R6,#0
+01F8 22              408                             RET 
+                     409     
+01F9                 410                     Segment_Numberdisplayer_9:
+                     411                     ;segment 9
+01F9 C2A0            412                             CLR SEGMENT_A
+01FB C2A1            413                             CLR SEGMENT_B
+01FD C2A2            414                             CLR SEGMENT_C
+01FF C2A3            415                             CLR SEGMENT_D
+0201 D2A4            416                             SETB SEGMENT_E
+0203 C2A5            417                             CLR SEGMENT_F
+0205 C2A6            418                             CLR SEGMENT_G
+0207 D2A7            419                             SETB SEGMENT_DOT
+0209 7E00            420                             MOV R6,#0
+020B 22              421                             RET 
+                     422     
+                     423     END
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     8
 
 SYMBOL TABLE LISTING
 ------ ----- -------
 
 
-N A M E                    T Y P E  V A L U E   ATTRIBUTES
+N A M E                       T Y P E  V A L U E   ATTRIBUTES
 
-P1. . . . . . . . . . . .  D ADDR   0090H   A   
-P2. . . . . . . . . . . .  D ADDR   00A0H   A   
-SEGMENT0_ENABLE . . . . .  B ADDR   0090H.0 A   
-SEGMENT1_ENABLE . . . . .  B ADDR   0090H.1 A   
-SEGMENT2_ENABLE . . . . .  B ADDR   0090H.2 A   
-SEGMENT3_ENABLE . . . . .  B ADDR   0090H.3 A   
-SEGMENT_A . . . . . . . .  B ADDR   00A0H.0 A   
-SEGMENT_ADDER . . . . . .  C ADDR   0025H   A   
-SEGMENT_B . . . . . . . .  B ADDR   00A0H.1 A   
-SEGMENT_C . . . . . . . .  B ADDR   00A0H.2 A   
-SEGMENT_CARRY . . . . . .  C ADDR   002EH   A   
-SEGMENT_CARRY_COMPLETE. .  C ADDR   0040H   A   
-SEGMENT_CARRY_R0TOR1. . .  C ADDR   003AH   A   
-SEGMENT_CARRY_R1TOR2. . .  C ADDR   0034H   A   
-SEGMENT_CARRY_R2TOR3. . .  C ADDR   0031H   A   
-SEGMENT_CHOOSER . . . . .  C ADDR   004AH   A   
-SEGMENT_CHOOSER_0 . . . .  C ADDR   004AH   A   
-SEGMENT_CHOOSER_1 . . . .  C ADDR   004FH   A   
-SEGMENT_CHOOSER_2 . . . .  C ADDR   0059H   A   
-SEGMENT_CHOOSER_3 . . . .  C ADDR   0063H   A   
-SEGMENT_D . . . . . . . .  B ADDR   00A0H.3 A   
-SEGMENT_DOT . . . . . . .  B ADDR   00A0H.7 A   
-SEGMENT_E . . . . . . . .  B ADDR   00A0H.4 A   
-SEGMENT_F . . . . . . . .  B ADDR   00A0H.5 A   
-SEGMENT_G . . . . . . . .  B ADDR   00A0H.6 A   
-SEGMENT_LOOP. . . . . . .  C ADDR   001DH   A   
-SEGMENT_NON_CARRY . . . .  C ADDR   0045H   A   
-SEGMENT_NUMBERDISPLAYER .  C ADDR   0082H   A   
-SEGMENT_NUMBERDISPLAYER_0  C ADDR   0082H   A   
-SEGMENT_NUMBERDISPLAYER_1  C ADDR   0092H   A   
-SEGMENT_NUMBERDISPLAYER_2  C ADDR   009AH   A   
-SEGMENT_NUMBERDISPLAYER_3  C ADDR   00A8H   A   
-SEGMENT_NUMBERDISPLAYER_4  C ADDR   00B6H   A   
-SEGMENT_NUMBERDISPLAYER_5  C ADDR   00C2H   A   
-SEGMENT_NUMBERDISPLAYER_6  C ADDR   00D0H   A   
-SEGMENT_NUMBERDISPLAYER_7  C ADDR   00DEH   A   
-SEGMENT_NUMBERDISPLAYER_8  C ADDR   00E8H   A   
-SEGMENT_NUMBERDISPLAYER_9  C ADDR   00FAH   A   
-SEGMENT_PRIVIOUS_CLEAR. .  C ADDR   0073H   A   
-SEGMENT_UPDATE. . . . . .  C ADDR   004AH   A   
-SETUP . . . . . . . . . .  C ADDR   0008H   A   
-SWITCH. . . . . . . . . .  B ADDR   00A0H.0 A   
+DELAYTIME. . . . . . . . . .  N NUMB   0005H   A   
+DELAY_TIME0. . . . . . . . .  C ADDR   0082H   A   
+DELAY_TIME0_WORKING. . . . .  C ADDR   0084H   A   
+DELAY_TIME1. . . . . . . . .  C ADDR   008CH   A   
+DELAY_TIME1_WORKING. . . . .  C ADDR   008EH   A   
+EA . . . . . . . . . . . . .  B ADDR   00A8H.7 A   
+EX1. . . . . . . . . . . . .  B ADDR   00A8H.2 A   
+INTERRUPT_EVENT. . . . . . .  C ADDR   0046H   A   
+IT1. . . . . . . . . . . . .  B ADDR   0088H.2 A   
+P1 . . . . . . . . . . . . .  D ADDR   0090H   A   
+P2 . . . . . . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . . . . . . .  D ADDR   00B0H   A   
+SEGMENT0_ENABLE. . . . . . .  B ADDR   0090H.3 A   
+SEGMENT1_ENABLE. . . . . . .  B ADDR   0090H.2 A   
+SEGMENT2_ENABLE. . . . . . .  B ADDR   0090H.1 A   
+SEGMENT3_ENABLE. . . . . . .  B ADDR   0090H.0 A   
+SEGMENT_A. . . . . . . . . .  B ADDR   00A0H.0 A   
+SEGMENT_ADDER. . . . . . . .  C ADDR   00A6H   A   
+SEGMENT_B. . . . . . . . . .  B ADDR   00A0H.1 A   
+SEGMENT_C. . . . . . . . . .  B ADDR   00A0H.2 A   
+SEGMENT_CARRY. . . . . . . .  C ADDR   00AFH   A   
+SEGMENT_CARRY_COMPLETE . . .  C ADDR   00D3H   A   
+SEGMENT_CARRY_R0TOR1 . . . .  C ADDR   00C6H   A   
+SEGMENT_CARRY_R1TOR2 . . . .  C ADDR   00B9H   A   
+SEGMENT_CARRY_R2TOR3 . . . .  C ADDR   00AFH   A   
+SEGMENT_CHOOSER. . . . . . .  C ADDR   00EDH   A   
+SEGMENT_CHOOSER_0. . . . . .  C ADDR   00EDH   A   
+SEGMENT_CHOOSER_1. . . . . .  C ADDR   00FAH   A   
+SEGMENT_CHOOSER_2. . . . . .  C ADDR   0106H   A   
+SEGMENT_CHOOSER_3. . . . . .  C ADDR   0112H   A   
+SEGMENT_CLEAR. . . . . . . .  C ADDR   00E3H   A   
+SEGMENT_D. . . . . . . . . .  B ADDR   00A0H.3 A   
+SEGMENT_DOT. . . . . . . . .  B ADDR   00A0H.7 A   
+SEGMENT_E. . . . . . . . . .  B ADDR   00A0H.4 A   
+SEGMENT_EXTINGUISH_INTERRUPT  C ADDR   005FH   A   
+SEGMENT_F. . . . . . . . . .  B ADDR   00A0H.5 A   
+SEGMENT_G. . . . . . . . . .  B ADDR   00A0H.6 A   
+SEGMENT_LIGHT_INTERRUPT. . .  C ADDR   0054H   A   
+SEGMENT_LOOP . . . . . . . .  C ADDR   0077H   A   
+SEGMENT_NON_CARRY. . . . . .  C ADDR   00DBH   A   
+SEGMENT_NUMBERDISPLAYER. . .  C ADDR   0133H   A   
+SEGMENT_NUMBERDISPLAYER_0. .  C ADDR   0133H   A   
+SEGMENT_NUMBERDISPLAYER_1. .  C ADDR   0149H   A   
+SEGMENT_NUMBERDISPLAYER_2. .  C ADDR   015FH   A   
+SEGMENT_NUMBERDISPLAYER_3. .  C ADDR   0175H   A   
+SEGMENT_NUMBERDISPLAYER_4. .  C ADDR   018BH   A   
+SEGMENT_NUMBERDISPLAYER_5. .  C ADDR   01A1H   A   
+SEGMENT_NUMBERDISPLAYER_6. .  C ADDR   01B7H   A   
+SEGMENT_NUMBERDISPLAYER_7. .  C ADDR   01CDH   A   
+SEGMENT_NUMBERDISPLAYER_8. .  C ADDR   01E3H   A   
+SEGMENT_NUMBERDISPLAYER_9. .  C ADDR   01F9H   A   
+SEGMENT_PRIVIOUS_CLEAR . . .  C ADDR   0124H   A   
+SEGMENT_UPDATE . . . . . . .  C ADDR   00EDH   A   
+SETUP. . . . . . . . . . . .  C ADDR   0017H   A   
+SP . . . . . . . . . . . . .  D ADDR   0081H   A   
+SWITCH . . . . . . . . . . .  B ADDR   00B0H.3 A   
+TF0. . . . . . . . . . . . .  B ADDR   0088H.5 A   
+TF1. . . . . . . . . . . . .  B ADDR   0088H.7 A   
+TH0. . . . . . . . . . . . .  D ADDR   008CH   A   
+TH1. . . . . . . . . . . . .  D ADDR   008DH   A   
+A51 MACRO ASSEMBLER  HW4_ASM_2                                                            12/16/2017 21:54:50 PAGE     9
+
+TIME_CHECKER . . . . . . . .  C ADDR   0096H   A   
+TIME_NOT_UP. . . . . . . . .  C ADDR   00A5H   A   
+TIME_UP. . . . . . . . . . .  C ADDR   009BH   A   
+TL0. . . . . . . . . . . . .  D ADDR   008AH   A   
+TL1. . . . . . . . . . . . .  D ADDR   008BH   A   
+TMOD . . . . . . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . . . . . . .  B ADDR   0088H.4 A   
+TR1. . . . . . . . . . . . .  B ADDR   0088H.6 A   
 
 
 REGISTER BANK(S) USED: 0 
 
 
-ASSEMBLY COMPLETE.  0 WARNING(S), 17 ERROR(S)
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
