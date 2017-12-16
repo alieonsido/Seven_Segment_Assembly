@@ -224,6 +224,7 @@ Segment_Update:
 		Segment_Numberdisplayer_6:
 		;segment 6
 			CJNE R6,#6,Segment_Numberdisplayer_7
+			SETB SEGMENT_A
 			SETB SEGMENT_C
 			SETB SEGMENT_D
 			SETB SEGMENT_E
@@ -260,7 +261,6 @@ Segment_Update:
 			SETB SEGMENT_B
 			SETB SEGMENT_C
 			SETB SEGMENT_D
-			SETB SEGMENT_E
 			SETB SEGMENT_F
 			SETB SEGMENT_G
 			MOV R6,#0

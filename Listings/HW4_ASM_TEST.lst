@@ -1,4 +1,4 @@
-A51 MACRO ASSEMBLER  HW4_ASM_TEST                                                         12/12/2017 12:11:00 PAGE     1
+A51 MACRO ASSEMBLER  HW4_ASM_TEST                                                         12/16/2017 17:18:33 PAGE     1
 
 
 MACRO ASSEMBLER A51 V8.2.7.0
@@ -8,57 +8,156 @@ ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE HW4_ASM_TEST.asm SET(SMALL) DEB
 
 LOC  OBJ            LINE     SOURCE
 
-                       1     
-  00A0                 2     SWITCH EQU P2.0
+                       1     ; Spec 1: click SW13 and the segment_LED ++ with non-interrupt.
+                       2     ; Sepc 2: click SW13 and the segment_LED ++ with external interrupt.
                        3     
-  0090                 4     SEGMENT0_ENABLE EQU P1.0 
-  0091                 5     SEGMENT1_ENABLE EQU P1.1
-  0092                 6     SEGMENT2_ENABLE EQU P1.2
-  0093                 7     SEGMENT3_ENABLE EQU P1.3
-                       8     
-  00A0                 9     SEGMENT_A EQU P2.0
-  00A1                10     SEGMENT_B EQU P2.1
-  00A2                11     SEGMENT_C EQU P2.2
-  00A3                12     SEGMENT_D EQU P2.3
-  00A4                13     SEGMENT_E EQU P2.4
-  00A5                14     SEGMENT_F EQU P2.5
-  00A6                15     SEGMENT_G EQU P2.6
-  00A7                16     SEGMENT_DOT EQU P2.7
-                      17     
-0000                  18     ORG 0000H
-0000 E500             19     MOV A,00H 
-0002 F5A0             20     MOV P2,A ;P2 = ""All"" of Port 2 
-0004 F590             21     MOV P1,A
-                      22     
-0006 D290             23     SETB SEGMENT0_ENABLE
-0008 D2A0             24     SETB SEGMENT_A
+                       4     ; the program is non-interrupt.
+                       5     
+                       6     ; non-interrupt:
+                       7     
+                       8     ; ----------------defination
+                       9     
+  00B3                10     SWITCH EQU P3.3
+                      11     
+  0093                12     SEGMENT0_ENABLE EQU P1.3 
+  0092                13     SEGMENT1_ENABLE EQU P1.2
+  0091                14     SEGMENT2_ENABLE EQU P1.1
+  0090                15     SEGMENT3_ENABLE EQU P1.0
+                      16     
+  00A0                17     SEGMENT_A EQU P2.0
+  00A1                18     SEGMENT_B EQU P2.1
+  00A2                19     SEGMENT_C EQU P2.2
+  00A3                20     SEGMENT_D EQU P2.3
+  00A4                21     SEGMENT_E EQU P2.4
+  00A5                22     SEGMENT_F EQU P2.5
+  00A6                23     SEGMENT_G EQU P2.6
+  00A7                24     SEGMENT_DOT EQU P2.7
                       25     
                       26     
-                      27     END
-                             
-A51 MACRO ASSEMBLER  HW4_ASM_TEST                                                         12/12/2017 12:11:00 PAGE     2
+                      27     ; ----------------defination
+                      28     
+                      29     ; Notes:
+                      30             ; MOV P2,A let all of P2 be zero.
+                      31             ; R0 R1 R2 R3 is used to be set "value".
+                      32             ; R4 is FLAG for adder triggered
+                      33             ; R5 is used to save the carry.
+                      34             ; R6 is used to be displayer.
+                      35             ; R7 is test register.
+                      36     
+                      37     
+                      38     ; Setup.
+0000                  39     ORG 0000H
+0000 E500             40     MOV A,00H 
+0002 F5A0             41     MOV P2,A ;P2 = ""All"" of Port 2 
+0004 F590             42     MOV P1,A
+0006 0108             43     AJMP Setup
+                      44     
+0008                  45     Setup:
+                      46             ;Number Initial
+0008 7800             47             MOV R0,#0
+000A 7900             48             MOV R1,#0
+000C 7A00             49             MOV R2,#0
+000E 7B00             50             MOV R3,#0
+0010 7C01             51             MOV R4,#1 ;for first equal checker & update initial state.
+0012 7D00             52             MOV R5,#0
+0014 7E00             53             MOV R6,#0
+0016 7F00             54             MOV R7,#0
+0018 75813F           55             MOV sp,#3FH
+001B 8000             56             JMP Segment_Loop
+                      57     
+A51 MACRO ASSEMBLER  HW4_ASM_TEST                                                         12/16/2017 17:18:33 PAGE     2
+
+                      58     
+                      59             
+                      60     
+                      61             
+                      62     ; for scan every segment loop, and it's main code.
+                      63     ; Segment_Chooser include displayer.
+001D                  64     Segment_Loop:
+001D                  65             Segment_Adder:
+                      66             ;JB SWITCH, Segment_Adder ;debounce
+                      67     
+001D 85108A           68             MOV TL0,10H ; for test debounce 
+0020 85018A           69             MOV TL0,01H ; for test debounce
+                      70     
+0023 E8               71             MOV A,R0
+0024 04               72                     INC A
+0025 F8               73                     MOV R0,A
+0026 E4               74                     CLR A
+                      75     
+0027 B80A25           76                     CJNE R0,#0AH,Segment_Non_Carry ; because this is a add 1 circuit, we only n
+                             eed to care the LSB.
+002A 8014             77                     JMP Segment_Carry_R0toR1
+                      78     
+002C                  79                     Segment_Carry:
+002C                  80                             Segment_Carry_R2toR3:
+002C EB               81                                     MOV A,R3
+002D 04               82                                     INC A
+002E FB               83                                     MOV R3,A
+002F 7A00             84                                     MOV R2,#00H
+0031 801A             85                                     JMP Segment_Carry_Complete
+                      86     
+0033                  87                             Segment_Carry_R1toR2:
+0033 B90A0A           88                                     CJNE R1,#0AH,Segment_Carry_R0toR1
+0036 EA               89                                     MOV A,R2
+0037 04               90                                     INC A
+0038 FA               91                                     MOV R2,A
+0039 7900             92                                     MOV R1,#00H
+003B BA0A0F           93                                     CJNE R2,#0AH,Segment_Carry_Complete
+003E 80EC             94                                     JMP Segment_Carry_R2toR3
+                      95     
+0040                  96                             Segment_Carry_R0toR1:
+0040 B80A0A           97                                     CJNE R0,#0AH,Segment_Carry_Complete
+0043 E9               98                                     MOV A,R1
+0044 04               99                                     INC A
+0045 F9              100                                     MOV R1,A
+0046 7800            101                                     MOV R0,#00H
+0048 B90A02          102                                     CJNE R1,#0AH,Segment_Carry_Complete
+004B 80E6            103                                     JMP Segment_Carry_R1toR2
+                     104     
+004D                 105                             Segment_Carry_Complete:
+004D 80CE            106                                     JMP Segment_Loop 
+                     107     
+004F                 108                     Segment_Non_Carry:
+004F 80CC            109                             JMP Segment_Loop 
+                     110             ;Warning: you can't JMP to Segment_Numberdisplayer directly, or you won't ba able t
+                             o back Segment_Adder.
+                     111     END
+A51 MACRO ASSEMBLER  HW4_ASM_TEST                                                         12/16/2017 17:18:33 PAGE     3
 
 SYMBOL TABLE LISTING
 ------ ----- -------
 
 
-N A M E             T Y P E  V A L U E   ATTRIBUTES
+N A M E                 T Y P E  V A L U E   ATTRIBUTES
 
-P1 . . . . . . . .  D ADDR   0090H   A   
-P2 . . . . . . . .  D ADDR   00A0H   A   
-SEGMENT0_ENABLE. .  B ADDR   0090H.0 A   
-SEGMENT1_ENABLE. .  B ADDR   0090H.1 A   
-SEGMENT2_ENABLE. .  B ADDR   0090H.2 A   
-SEGMENT3_ENABLE. .  B ADDR   0090H.3 A   
-SEGMENT_A. . . . .  B ADDR   00A0H.0 A   
-SEGMENT_B. . . . .  B ADDR   00A0H.1 A   
-SEGMENT_C. . . . .  B ADDR   00A0H.2 A   
-SEGMENT_D. . . . .  B ADDR   00A0H.3 A   
-SEGMENT_DOT. . . .  B ADDR   00A0H.7 A   
-SEGMENT_E. . . . .  B ADDR   00A0H.4 A   
-SEGMENT_F. . . . .  B ADDR   00A0H.5 A   
-SEGMENT_G. . . . .  B ADDR   00A0H.6 A   
-SWITCH . . . . . .  B ADDR   00A0H.0 A   
+P1 . . . . . . . . . .  D ADDR   0090H   A   
+P2 . . . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . . . .  D ADDR   00B0H   A   
+SEGMENT0_ENABLE. . . .  B ADDR   0090H.3 A   
+SEGMENT1_ENABLE. . . .  B ADDR   0090H.2 A   
+SEGMENT2_ENABLE. . . .  B ADDR   0090H.1 A   
+SEGMENT3_ENABLE. . . .  B ADDR   0090H.0 A   
+SEGMENT_A. . . . . . .  B ADDR   00A0H.0 A   
+SEGMENT_ADDER. . . . .  C ADDR   001DH   A   
+SEGMENT_B. . . . . . .  B ADDR   00A0H.1 A   
+SEGMENT_C. . . . . . .  B ADDR   00A0H.2 A   
+SEGMENT_CARRY. . . . .  C ADDR   002CH   A   
+SEGMENT_CARRY_COMPLETE  C ADDR   004DH   A   
+SEGMENT_CARRY_R0TOR1 .  C ADDR   0040H   A   
+SEGMENT_CARRY_R1TOR2 .  C ADDR   0033H   A   
+SEGMENT_CARRY_R2TOR3 .  C ADDR   002CH   A   
+SEGMENT_D. . . . . . .  B ADDR   00A0H.3 A   
+SEGMENT_DOT. . . . . .  B ADDR   00A0H.7 A   
+SEGMENT_E. . . . . . .  B ADDR   00A0H.4 A   
+SEGMENT_F. . . . . . .  B ADDR   00A0H.5 A   
+SEGMENT_G. . . . . . .  B ADDR   00A0H.6 A   
+SEGMENT_LOOP . . . . .  C ADDR   001DH   A   
+SEGMENT_NON_CARRY. . .  C ADDR   004FH   A   
+SETUP. . . . . . . . .  C ADDR   0008H   A   
+SP . . . . . . . . . .  D ADDR   0081H   A   
+SWITCH . . . . . . . .  B ADDR   00B0H.3 A   
+TL0. . . . . . . . . .  D ADDR   008AH   A   
 
 
 REGISTER BANK(S) USED: 0 

@@ -1,3 +1,3 @@
-".\Objects\HW4_ASM_TEST.obj" 
+".\Objects\HW4_ASM_commonpositive.obj" 
 TO ".\Objects\HW4" 
-PRINT(".\Listings\HW4.m51")
+PRINT(".\Listings\HW4.m51") RAMSIZE(256) 
