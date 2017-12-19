@@ -3,7 +3,6 @@
 
 ; the program is non-interrupt.
 
-; non-interrupt:
 
 ; ----------------defination
 
@@ -24,6 +23,7 @@ SEGMENT_G EQU P2.6
 SEGMENT_DOT EQU P2.7
 
 DELAYTIME EQU 5
+BLINKTIMES EQU 3H
 
 ; ----------------defination
 
@@ -53,6 +53,8 @@ RETI
 
 Setup:
 	;Number Initial
+	CLR RS0
+	CLR RS1
 	MOV R0,#0
 	MOV R1,#0
 	MOV R2,#0
@@ -63,6 +65,7 @@ Setup:
 	MOV R6,#0
 	MOV R7,#0
 	MOV sp,#3FH
+
 	
 	;timer Initial.
 	MOV tmod,#00010001b  ;setting timer0 and timer 1 in MODE 1, Total range is 16bit.(TH+TL)
@@ -76,47 +79,68 @@ Setup:
 	MOV TL1,01H
 
 
-	; for Interrupt Initial.
-	SETB EA
-	SETB EX1
-	SETB IT1 ; for INT1 low edge trigger 
+	
+	SETB EA ; for Interrupt Initial.
+	SETB EX1 ; for INT1 Enable
+	SETB IT1 ; for INT1 negative edge trigger 
 
 	LCALL Segment_Update
 	JMP Segment_Loop
 
 ;uncomplete
 Interrupt_event:
-	CLR TR0
-	MOV R0,#4
-	MOV R1,#0
-	MOV R2,#0
-	MOV R3,#0
-	MOV R4,#DELAYTIME;
-	SETB TR0
+	
+	;Save data to another memory.
+	MOV 08H,R0
+	MOV 09H,R1
+	MOV 0AH,R2
+	MOV 0BH,R3
 
-	Segment_Light_Interrupt:
-		LCALL Segment_Update
-		LCALL Time_Checker
-		CJNE R4,#0,Segment_Light_Interrupt
+	MOV 00H,#4
+	MOV 01H,#0
+	MOV 02H,#4
+	MOV 03H,#0
 
-		MOV R4,#DELAYTIME ;For next Initial
+	Interrupt_event_loop:
+		CLR TR0
 
-	Segment_Extinguish_Interrupt:
-		LCALL Delay_Time0 ;delay 5ms
-		MOV A,R4
-		DEC A
-		MOV R4,A
-		CJNE R4,#0,Segment_Extinguish_Interrupt ;5ms * 100 = 500ms
+		MOV R4,#DELAYTIME;
+		SETB TR0
 
-	MOV A,R7
-	INC A
-	MOV R7,A
-	CJNE R7,#03H,Interrupt_event
+		Segment_Light_Interrupt:
+			LCALL Segment_Update
+			LCALL Time_Checker
+			CJNE R4,#0,Segment_Light_Interrupt
 
-	MOV R7,#00H
+			MOV R4,#DELAYTIME ;For next Initial
+
+		Segment_Extinguish_Interrupt:
+			LCALL Delay_Time0 ;delay 5ms
+			MOV A,R4
+			DEC A
+			MOV R4,A
+			CJNE R4,#0,Segment_Extinguish_Interrupt ;5ms * 100 = 500ms
+
+		MOV A,R7
+		INC A
+		MOV R7,A
+		CJNE R7,#BLINKTIMES,Interrupt_event_loop ;blink three times.
+
+	MOV R7,#00H ;clear.
 	MOV R4,#DELAYTIME
 	CLR TR0
 	SETB TR0
+
+	LCALL Delay_Time1
+	;save data to get back.
+	SETB RS0
+	MOV 00H,R0
+	MOV 01H,R1
+ 	MOV 02H,R2
+	MOV 03H,R3
+	CLR RS0
+
+
 	RET
 
 	
@@ -125,7 +149,7 @@ Interrupt_event:
 Segment_Loop:
 	LCALL Segment_Update
 	LCALL Time_Checker
-	CJNE R4,#0000H,Segment_Loop ;C8H = 12*16 + 8 = 200(dec)
+	CJNE R4,#0000H,Segment_Loop ; check counter times. C8H = 12*16 + 8 = 200(dec)
 	JMP Segment_Adder
 	
 
@@ -241,25 +265,25 @@ Segment_Update:
 			SETB SEGMENT1_ENABLE
 			SETB SEGMENT2_ENABLE
 			SETB SEGMENT3_ENABLE
-			MOV 06H,R0 ; for displayer's check.
+			MOV 06H,00H ; for displayer's check.
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_1:
 			SETB SEGMENT0_ENABLE ; 0 2 3
 			LCALL Segment_Privious_Clear ;you need to clean the previous SEGMENT or you will get the previous status.
 			CLR SEGMENT1_ENABLE 
-			MOV 06H,R1 ; for displayer's check.
+			MOV 06H,01H ; for displayer's check.
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_2:
 			SETB SEGMENT1_ENABLE ; 0 1 3
 			LCALL Segment_Privious_Clear
 			CLR SEGMENT2_ENABLE
-			MOV 06H,R2 ; for displayer's check.
+			MOV 06H,02H ; for displayer's check.
 			LCALL Segment_Numberdisplayer
 		Segment_Chooser_3:
 			SETB SEGMENT2_ENABLE ; 0 1 2
 			LCALL Segment_Privious_Clear
 			CLR SEGMENT3_ENABLE 
-			MOV 06H,R3 ; for displayer's check.
+			MOV 06H,03H ; for displayer's check.
 			LCALL Segment_Numberdisplayer 
 			SETB SEGMENT3_ENABLE ; It must be clear itself. 0 1 2 3
 			LCALL Segment_Privious_Clear
